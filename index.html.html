@@ -1,0 +1,2873 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copiloto Financiero</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --verde-oscuro: #1a2e1a;
+  --verde-medio: #2e5d2e;
+  --verde-claro: #c8e6c9;
+  --verde-suave: #e8f5e0;
+  --bg: #f0ede8;
+  --card: #ffffff;
+  --texto: #1a1a1a;
+  --texto2: #666;
+  --texto3: #999;
+  --borde: #e0dcd8;
+  --borde2: #ccc;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #e8e4df; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px 0 40px; }
+
+.phone {
+  width: 375px; border-radius: 36px; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  background: var(--bg); position: relative;
+}
+.status-bar {
+  background: var(--verde-oscuro); height: 44px;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+}
+.status-bar span { color: var(--verde-claro); font-size: 12px; font-weight: 500; }
+.app-scroll { height: 720px; overflow-y: auto; scrollbar-width: none; padding-bottom: 70px; }
+.app-scroll::-webkit-scrollbar { display: none; }
+
+/* HEADER */
+.header { background: var(--verde-oscuro); padding: 14px 18px 26px; border-radius: 0 0 26px 26px; }
+.header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.greeting { font-size: 12px; color: #81c784; }
+.username { font-size: 19px; font-weight: 600; color: #e8f5e9; margin-top: 2px; }
+.sem-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 11px; border-radius: 20px; font-size: 11px; font-weight: 600; margin-top: 10px;
+}
+.sem-verde { background: #2e5d2e; color: #a5d6a7; }
+.sem-amarillo { background: #5d4a1a; color: #ffe082; }
+.sem-rojo { background: #5d1a1a; color: #ef9a9a; }
+.dot { width: 7px; height: 7px; border-radius: 50%; }
+
+/* BALANCE CARD */
+.balance-card {
+  background: var(--verde-suave); border-radius: 18px;
+  margin: -13px 14px 0; padding: 16px; border: 1px solid #c8e6c0;
+}
+.bal-label { font-size: 10px; color: #4a7a4a; text-transform: uppercase; letter-spacing: .5px; }
+.bal-amount { font-size: 30px; font-weight: 700; color: #1a4a1a; letter-spacing: -1px; margin: 2px 0; }
+.bal-sub { font-size: 11px; color: #5a8a5a; }
+.daily-pill {
+  background: #fff9f0; border-radius: 11px; margin-top: 9px;
+  padding: 9px 13px; border: 1px solid #f0d8b0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.daily-pill span:first-child { font-size: 11px; color: #8a6030; }
+.daily-pill span:last-child { font-size: 16px; font-weight: 700; color: #5a3a10; }
+
+/* SECTION */
+.sec { padding: 12px 14px 0; }
+.sec-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.sec-title { font-size: 12px; font-weight: 600; color: #3a5a3a; }
+.sec-link { font-size: 11px; color: #3a7a3a; cursor: pointer; }
+
+/* TARJETAS SCROLL */
+.cards-scroll { display: flex; gap: 9px; padding: 0 14px 4px; overflow-x: auto; scrollbar-width: none; }
+.cards-scroll::-webkit-scrollbar { display: none; }
+.credit-card {
+  min-width: 185px; border-radius: 14px; padding: 13px;
+  border: 1px solid var(--borde); background: var(--card); flex-shrink: 0; cursor: pointer;
+  transition: border-color .15s;
+}
+.credit-card.sel { border: 1.5px solid #3a7a3a; }
+.cc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.cc-name { font-size: 11px; font-weight: 600; color: var(--texto); }
+.cc-net { font-size: 10px; color: var(--texto2); background: #f5f5f5; padding: 2px 7px; border-radius: 8px; }
+.cc-amount { font-size: 18px; font-weight: 700; }
+.cc-limit { font-size: 10px; color: var(--texto2); margin-top: 1px; }
+.mini-bar { background: #f0ede8; border-radius: 3px; height: 4px; margin: 7px 0 5px; overflow: hidden; }
+.mini-bar-fill { height: 100%; border-radius: 3px; }
+.cc-foot { display: flex; justify-content: space-between; }
+.cc-venc { font-size: 10px; }
+.cc-pct { font-size: 10px; font-weight: 600; }
+
+.add-card {
+  min-width: 90px; border-radius: 14px; padding: 13px;
+  border: 1.5px dashed var(--borde2); background: transparent; flex-shrink: 0;
+  cursor: pointer; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 5px;
+}
+.add-card i { font-size: 20px; color: var(--texto3); }
+.add-card span { font-size: 10px; color: var(--texto3); text-align: center; }
+
+/* VENCIMIENTOS */
+.venc-scroll { display: flex; gap: 9px; padding: 0 14px 4px; overflow-x: auto; scrollbar-width: none; }
+.venc-scroll::-webkit-scrollbar { display: none; }
+.venc-chip {
+  min-width: 125px; border-radius: 13px; padding: 11px;
+  border: 1px solid var(--borde); background: var(--card); flex-shrink: 0;
+  cursor: pointer; transition: all .15s;
+}
+.venc-chip.urg { border-color: #f0c870; background: #fffcf0; }
+.venc-chip.crit { border-color: #f0a0a0; background: #fff5f5; }
+.venc-chip i { font-size: 15px; margin-bottom: 5px; display: block; }
+.venc-nombre { font-size: 11px; font-weight: 600; color: var(--texto); }
+.venc-fecha { font-size: 10px; color: var(--texto2); margin-top: 1px; }
+.venc-monto { font-size: 13px; font-weight: 700; color: var(--texto); margin-top: 5px; }
+.venc-dias { font-size: 10px; margin-top: 2px; }
+.d-ok { color: #2a7a2a; }
+.d-warn { color: #9a6010; }
+.d-red { color: #9a1a1a; }
+
+/* FOOD BAR */
+.food-card { background: var(--card); border-radius: 14px; padding: 13px; border: 1px solid var(--borde); }
+.food-head { display: flex; justify-content: space-between; margin-bottom: 9px; }
+.food-head span:first-child { font-size: 12px; font-weight: 600; color: var(--texto); }
+.food-pct { font-size: 12px; font-weight: 700; color: #3a7a3a; }
+.bar-track { background: #f0ede8; border-radius: 6px; height: 9px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 6px; background: #4a8a4a; transition: width .5s; }
+.bar-leg { display: flex; justify-content: space-between; margin-top: 5px; }
+.bar-leg span { font-size: 10px; color: var(--texto2); }
+
+/* PHRASE */
+.phrase { background: var(--verde-oscuro); border-radius: 14px; padding: 13px 15px; margin: 12px 14px 0; }
+.phrase-text { font-size: 12px; color: var(--verde-claro); line-height: 1.5; font-style: italic; }
+.phrase-author { font-size: 10px; color: #5a8a5a; margin-top: 5px; }
+
+/* ACCORDION */
+.acc { background: var(--card); border-radius: 14px; border: 1px solid var(--borde); overflow: hidden; margin: 10px 14px 0; }
+.acc-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 13px 14px; cursor: pointer;
+}
+.acc-head-title { font-size: 13px; font-weight: 600; color: var(--texto); display: flex; align-items: center; gap: 7px; }
+.acc-head-title i { font-size: 15px; color: #5a8a5a; }
+.acc-chev { font-size: 15px; color: var(--texto3); transition: transform .25s; }
+.acc-chev.open { transform: rotate(180deg); }
+.acc-body { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+.acc-body.open { max-height: 400px; }
+.acc-inner { padding: 0 14px 13px; border-top: 1px solid var(--borde); }
+.res-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: .5px solid var(--borde);
+}
+.res-row:last-child { border-bottom: none; }
+.res-name { font-size: 12px; color: var(--texto2); }
+.res-right { display: flex; align-items: center; gap: 7px; }
+.res-amount { font-size: 12px; font-weight: 600; color: var(--texto); }
+.badge { font-size: 10px; padding: 2px 7px; border-radius: 9px; }
+.b-ok { background: var(--verde-suave); color: #2a6a2a; }
+.b-warn { background: #fff9e0; color: #8a6010; }
+
+/* HISTORIAL */
+.hist-sum { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 0 14px 12px; }
+.hist-sum-card { background: var(--card); border-radius: 12px; padding: 11px 12px; border: 1px solid var(--borde); }
+.hs-label { font-size: 10px; color: var(--texto2); }
+.hs-val { font-size: 16px; font-weight: 700; color: var(--texto); margin-top: 2px; }
+.hs-sub { font-size: 10px; color: var(--texto3); margin-top: 1px; }
+
+.month-card { background: var(--card); border-radius: 14px; border: 1px solid var(--borde); overflow: hidden; margin: 0 14px 8px; cursor: pointer; }
+.mc-head { display: flex; align-items: center; gap: 11px; padding: 12px 14px; }
+.mc-circle {
+  width: 40px; height: 40px; border-radius: 10px; background: var(--verde-oscuro);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.mc-circle span:first-child { font-size: 10px; font-weight: 700; color: #81c784; text-transform: uppercase; }
+.mc-circle span:last-child { font-size: 10px; color: #4a7a4a; }
+.mc-info { flex: 1; }
+.mc-title { font-size: 13px; font-weight: 600; color: var(--texto); display: flex; align-items: center; gap: 6px; }
+.mc-sub { font-size: 10px; color: var(--texto2); margin-top: 2px; }
+.mc-result-pos { font-size: 13px; font-weight: 700; color: #1a7a1a; }
+.mc-result-neg { font-size: 13px; font-weight: 700; color: #9a1a1a; }
+.mc-result-label { font-size: 10px; color: var(--texto3); margin-top: 2px; text-align: right; }
+.mc-chev { font-size: 14px; color: var(--texto3); transition: transform .25s; flex-shrink: 0; }
+.mc-chev.open { transform: rotate(180deg); }
+.mc-detail { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
+.mc-detail.open { max-height: 350px; }
+.mc-detail-inner { padding: 0 14px 13px; border-top: .5px solid var(--borde); }
+.mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 10px 0 8px; }
+.mc-item { background: #f9f9f9; border-radius: 10px; padding: 9px 11px; }
+.mc-item-label { font-size: 10px; color: var(--texto2); }
+.mc-item-val { font-size: 14px; font-weight: 700; margin-top: 2px; }
+.mc-nota { font-size: 11px; color: var(--texto2); background: #f5f5f5; border-radius: 9px; padding: 8px 10px; margin-top: 6px; font-style: italic; }
+.mc-bar-label { font-size: 10px; color: var(--texto2); margin-bottom: 4px; }
+.mc-bar-track { background: #f0ede8; border-radius: 5px; height: 5px; overflow: hidden; margin-bottom: 3px; }
+.mc-bar-fill { height: 100%; border-radius: 5px; }
+.mc-bar-leg { display: flex; justify-content: space-between; font-size: 10px; color: var(--texto3); }
+.curso-tag { font-size: 9px; background: var(--verde-suave); color: #1a5a1a; padding: 1px 6px; border-radius: 7px; }
+
+/* VENCIMIENTOS PANTALLA COMPLETA */
+.venc-full-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 13px; border-radius: 13px;
+  border: .5px solid var(--borde); background: var(--card);
+  margin: 0 14px 7px; overflow: hidden;
+  transition: opacity .35s ease, max-height .4s ease, margin .35s ease, padding .35s ease, border-width .35s ease;
+  max-height: 100px;
+}
+.venc-full-row.urg { border-color: #e8c870; background: #fffcf0; }
+.venc-full-row.crit { border-color: #e8a0a0; background: #fff5f5; }
+.venc-full-row.hiding { opacity: 0; max-height: 0; margin-bottom: 0; padding: 0; border-width: 0; }
+.day-bub {
+  min-width: 40px; height: 40px; border-radius: 10px; background: #f5f5f5;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.day-bub.hoy { background: var(--verde-oscuro); }
+.day-bub .dn { font-size: 14px; font-weight: 700; color: var(--texto); }
+.day-bub.hoy .dn { color: var(--verde-claro); }
+.day-bub .dm { font-size: 9px; color: var(--texto3); }
+.day-bub.hoy .dm { color: #6a9a6a; }
+.vf-ico { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ic-v { background: #e8f0ff; color: #1a4a9a; }
+.ic-s { background: #fff8e0; color: #9a6010; }
+.ic-sa { background: #ffe8f0; color: #9a1a4a; }
+.ic-t { background: var(--verde-suave); color: #1a5a1a; }
+.ic-e { background: #f0e8ff; color: #5a1a9a; }
+.ic-o { background: #f5f5f5; color: var(--texto2); }
+.vf-info { flex: 1; min-width: 0; }
+.vf-name { font-size: 12px; font-weight: 600; color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vf-cat { font-size: 10px; color: var(--texto2); margin-top: 1px; }
+.vf-right { text-align: right; flex-shrink: 0; }
+.vf-monto { font-size: 13px; font-weight: 700; color: var(--texto); }
+.dbadge { font-size: 9px; padding: 2px 7px; border-radius: 8px; margin-top: 3px; display: inline-block; }
+.dbadge.ok { background: var(--verde-suave); color: #1a5a1a; }
+.dbadge.warn { background: #fff8e0; color: #7a5010; }
+.dbadge.red { background: #ffe8e8; color: #7a1a1a; }
+.dbadge.past { background: #f5f5f5; color: var(--texto3); }
+.cancel-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  flex-shrink: 0; cursor: pointer; padding: 5px 9px;
+  border-radius: 10px; border: .5px solid var(--borde); background: transparent; transition: all .15s;
+}
+.cancel-btn:hover { border-color: #3a7a3a; background: #f0f8f0; }
+.cancel-btn.done { background: var(--verde-oscuro); border-color: var(--verde-oscuro); }
+.check-ring {
+  width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--borde2);
+  display: flex; align-items: center; justify-content: center; transition: all .2s;
+}
+.cancel-btn.done .check-ring { background: #4a9a4a; border-color: #4a9a4a; }
+.cancel-btn.done .check-ring i { color: #fff; }
+.check-ring i { font-size: 11px; color: var(--texto3); }
+.cancel-lbl { font-size: 9px; color: var(--texto2); }
+.cancel-btn.done .cancel-lbl { color: var(--verde-claro); }
+
+.week-sep-full { font-size: 10px; font-weight: 600; color: var(--texto3); text-transform: uppercase; letter-spacing: .4px; padding: 12px 14px 6px; }
+
+.vf-resumen { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: var(--card); border-radius: 13px; border: .5px solid var(--borde); margin: 4px 14px 0; }
+.vfr-label { font-size: 12px; color: var(--texto2); }
+.vfr-right { text-align: right; }
+.vfr-pend { font-size: 16px; font-weight: 700; color: var(--texto); }
+.vfr-paid { font-size: 11px; color: #2a7a2a; margin-top: 2px; }
+
+/* NAV */
+.nav {
+  position: sticky; bottom: 0;
+  background: var(--card); border-top: .5px solid var(--borde);
+  display: flex; justify-content: space-around; padding: 8px 0 14px;
+}
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; padding: 2px 8px; position: relative; }
+.nav-item i { font-size: 20px; color: var(--texto3); }
+.nav-item.active i { color: #3a7a3a; }
+.nav-item span { font-size: 9px; color: var(--texto3); }
+.nav-item.active span { color: #3a7a3a; }
+.nav-badge {
+  position: absolute; top: 0; right: 2px;
+  background: #c0392b; color: #fff; font-size: 8px;
+  width: 13px; height: 13px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-weight: 700;
+}
+
+/* MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.5); z-index: 200;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--card); border-radius: 20px; padding: 20px; width: 320px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.modal-title { font-size: 15px; font-weight: 700; color: var(--texto); margin-bottom: 14px; display: flex; justify-content: space-between; }
+.modal-close { cursor: pointer; color: var(--texto3); }
+.mf { margin-bottom: 10px; }
+.mf label { font-size: 11px; color: var(--texto2); display: block; margin-bottom: 3px; }
+.mf input, .mf select {
+  width: 100%; font-size: 13px; padding: 7px 10px;
+  border-radius: 9px; border: .5px solid var(--borde2);
+  background: #f9f9f9; color: var(--texto);
+}
+.mg { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.btn-add {
+  width: 100%; padding: 10px; border-radius: 11px;
+  background: var(--verde-oscuro); color: var(--verde-claro);
+  font-size: 13px; font-weight: 600; border: none; cursor: pointer; margin-top: 4px;
+}
+
+/* SCREENS */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* VENC FILTER */
+.vf-filter { display: flex; gap: 7px; padding: 0 14px 10px; overflow-x: auto; scrollbar-width: none; }
+.vf-filter::-webkit-scrollbar { display: none; }
+.ff-btn {
+  padding: 5px 12px; border-radius: 18px; font-size: 11px; white-space: nowrap;
+  border: .5px solid var(--borde2); background: transparent; color: var(--texto2); cursor: pointer;
+}
+.ff-btn.active { background: var(--verde-oscuro); color: var(--verde-claro); border-color: var(--verde-oscuro); }
+
+/* HIST YEAR NAV */
+.yr-nav { display: flex; align-items: center; gap: 12px; padding: 4px 14px 12px; }
+.yr-nav span { font-size: 15px; font-weight: 700; color: var(--texto); }
+.yr-btn {
+  background: transparent; border: .5px solid var(--borde2);
+  border-radius: 9px; padding: 5px 10px; cursor: pointer; color: var(--texto2); font-size: 12px;
+}
+
+/* ══════════════════════════════════════════
+   ONBOARDING
+══════════════════════════════════════════ */
+.ob-overlay {
+  position: absolute; inset: 0; z-index: 300;
+  background: var(--bg); display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.ob-overlay.hidden { display: none; }
+
+/* Encabezado del onboarding */
+.ob-header {
+  background: var(--verde-oscuro); padding: 18px 20px 22px;
+  border-radius: 0 0 24px 24px; flex-shrink: 0;
+}
+.ob-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.ob-logo i { font-size: 22px; color: #81c784; }
+.ob-logo span { font-size: 15px; font-weight: 700; color: #e8f5e9; letter-spacing: -.3px; }
+
+/* Steps indicator */
+.ob-steps { display: flex; align-items: center; gap: 6px; }
+.ob-step-dot {
+  height: 4px; border-radius: 2px;
+  background: rgba(255,255,255,.2); transition: all .35s;
+}
+.ob-step-dot.done { background: #66bb6a; width: 16px !important; }
+.ob-step-dot.active { background: #fff; width: 28px !important; }
+.ob-step-txt { font-size: 10px; color: #81c784; margin-left: auto; }
+
+/* Cuerpo del onboarding con scroll */
+.ob-body {
+  flex: 1; overflow-y: auto; scrollbar-width: none; padding: 0 18px 20px;
+}
+.ob-body::-webkit-scrollbar { display: none; }
+
+/* Wrapper de pasos con slide */
+.ob-steps-wrapper {
+  display: flex; width: 400%; /* 4 steps */
+  transition: transform .4s cubic-bezier(.4,0,.2,1);
+}
+.ob-step-panel { width: 25%; flex-shrink: 0; padding-top: 22px; }
+
+/* Tipografía del onboarding */
+.ob-title {
+  font-size: 20px; font-weight: 700; color: var(--texto); line-height: 1.2; margin-bottom: 6px;
+}
+.ob-subtitle { font-size: 12px; color: var(--texto2); line-height: 1.5; margin-bottom: 20px; }
+
+/* Inputs del onboarding */
+.ob-field { margin-bottom: 13px; }
+.ob-field label { font-size: 11px; font-weight: 600; color: #3a5a3a; display: block; margin-bottom: 4px; }
+.ob-input {
+  width: 100%; font-size: 15px; font-weight: 600; padding: 11px 13px;
+  border-radius: 12px; border: 1.5px solid var(--borde);
+  background: var(--card); color: var(--texto);
+  transition: border-color .2s;
+}
+.ob-input:focus { outline: none; border-color: #3a7a3a; }
+.ob-input-prefix-wrap { position: relative; }
+.ob-prefix {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  font-size: 15px; font-weight: 600; color: var(--texto2);
+}
+.ob-input-prefix-wrap .ob-input { padding-left: 24px; }
+
+/* Atajos de monto */
+.ob-shortcuts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ob-shortcut {
+  padding: 5px 12px; border-radius: 18px; font-size: 11px; font-weight: 600;
+  border: 1px solid var(--borde2); background: var(--card);
+  color: var(--texto2); cursor: pointer; transition: all .15s;
+}
+.ob-shortcut:hover { border-color: #3a7a3a; color: #2a5a2a; background: var(--verde-suave); }
+
+/* Lista gastos fijos */
+.ob-gasto-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
+.ob-gasto-row {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--card); border-radius: 12px; padding: 10px 12px;
+  border: 1.5px solid var(--borde); transition: border-color .15s;
+}
+.ob-gasto-row.activo { border-color: #3a7a3a; }
+.ob-gasto-chk {
+  width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--borde2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; transition: all .15s;
+}
+.ob-gasto-chk.on { background: #2a7a2a; border-color: #2a7a2a; }
+.ob-gasto-chk.on i { color: #fff; }
+.ob-gasto-chk i { font-size: 11px; color: transparent; }
+.ob-gasto-ico { font-size: 16px; flex-shrink: 0; }
+.ob-gasto-info { flex: 1; min-width: 0; }
+.ob-gasto-nombre { font-size: 12px; font-weight: 600; color: var(--texto); }
+.ob-gasto-dia { font-size: 10px; color: var(--texto2); }
+.ob-gasto-monto {
+  width: 80px; font-size: 12px; font-weight: 600; padding: 5px 8px;
+  border-radius: 8px; border: 1px solid var(--borde); background: #f9f9f9;
+  color: var(--texto); text-align: right;
+}
+.ob-gasto-monto:focus { outline: none; border-color: #3a7a3a; }
+
+/* Botón agregar gasto */
+.ob-add-gasto {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 12px;
+  border: 1.5px dashed var(--borde2); background: transparent;
+  cursor: pointer; width: 100%; transition: all .15s;
+}
+.ob-add-gasto:hover { border-color: #3a7a3a; background: var(--verde-suave); }
+.ob-add-gasto span { font-size: 12px; color: var(--texto2); }
+.ob-add-gasto i { font-size: 16px; color: var(--texto3); }
+
+/* Tarjetas en onboarding */
+.ob-card-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 10px; }
+.ob-card-item {
+  background: var(--card); border-radius: 12px; padding: 11px 13px;
+  border: 1px solid var(--borde); display: flex; align-items: center; gap: 10px;
+}
+.ob-card-ico { font-size: 20px; }
+.ob-card-info { flex: 1; }
+.ob-card-name { font-size: 12px; font-weight: 600; color: var(--texto); }
+.ob-card-sub { font-size: 10px; color: var(--texto2); margin-top: 1px; }
+.ob-card-del { font-size: 16px; color: var(--texto3); cursor: pointer; padding: 4px; }
+
+/* Mini modal agregar tarjeta */
+.ob-card-form {
+  background: var(--verde-suave); border-radius: 14px; padding: 14px;
+  border: 1.5px solid #a5d6a7; margin-bottom: 10px; display: none;
+}
+.ob-card-form.show { display: block; }
+.ob-card-form-title { font-size: 12px; font-weight: 700; color: #1a4a1a; margin-bottom: 10px; }
+.ob-cf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.ob-cf-field label { font-size: 10px; color: #3a5a3a; display: block; margin-bottom: 3px; }
+.ob-cf-field input, .ob-cf-field select {
+  width: 100%; font-size: 12px; padding: 7px 9px;
+  border-radius: 9px; border: 1px solid #c8e6c0;
+  background: var(--card); color: var(--texto);
+}
+.ob-cf-field input:focus, .ob-cf-field select:focus { outline: none; border-color: #3a7a3a; }
+.ob-cf-actions { display: flex; gap: 7px; }
+.ob-cf-cancel {
+  flex: 1; padding: 8px; border-radius: 9px; border: 1px solid var(--borde2);
+  background: transparent; font-size: 12px; color: var(--texto2); cursor: pointer;
+}
+.ob-cf-ok {
+  flex: 2; padding: 8px; border-radius: 9px; border: none;
+  background: var(--verde-oscuro); font-size: 12px; font-weight: 600;
+  color: var(--verde-claro); cursor: pointer;
+}
+
+/* Botón principal siguiente */
+.ob-next-btn {
+  width: 100%; padding: 14px; border-radius: 14px;
+  background: var(--verde-oscuro); color: var(--verde-claro);
+  font-size: 14px; font-weight: 700; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: transform .1s, box-shadow .1s;
+  box-shadow: 0 4px 16px rgba(26,46,26,.3);
+  margin-top: 8px;
+}
+.ob-next-btn:active { transform: scale(.98); }
+.ob-back-btn {
+  width: 100%; padding: 10px; border-radius: 12px; margin-top: 8px;
+  border: 1px solid var(--borde); background: transparent;
+  font-size: 12px; color: var(--texto2); cursor: pointer;
+}
+
+/* Info pill */
+.ob-info-pill {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: #fff9e8; border-radius: 11px; padding: 10px 12px;
+  border: 1px solid #f0d890; margin-bottom: 14px;
+}
+.ob-info-pill i { font-size: 14px; color: #8a6010; flex-shrink: 0; margin-top: 1px; }
+.ob-info-pill span { font-size: 11px; color: #6a4a10; line-height: 1.45; }
+
+/* Pantalla de completado */
+.ob-done-screen {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 40px 24px; text-align: center;
+  min-height: 400px;
+}
+.ob-done-icon {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: var(--verde-oscuro); display: flex; align-items: center;
+  justify-content: center; margin-bottom: 20px;
+  animation: popIn .5s cubic-bezier(.175,.885,.32,1.275);
+}
+.ob-done-icon i { font-size: 32px; color: #81c784; }
+@keyframes popIn {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.ob-done-title { font-size: 22px; font-weight: 700; color: var(--texto); margin-bottom: 8px; }
+.ob-done-sub { font-size: 13px; color: var(--texto2); line-height: 1.6; margin-bottom: 28px; }
+.ob-done-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 9px;
+  width: 100%; margin-bottom: 24px;
+}
+.ob-done-stat {
+  background: var(--card); border-radius: 13px; padding: 13px;
+  border: 1px solid var(--borde); text-align: left;
+}
+.ob-done-stat-label { font-size: 10px; color: var(--texto2); }
+.ob-done-stat-val { font-size: 16px; font-weight: 700; color: var(--texto); margin-top: 3px; }
+/* Mod 1 — selector mes/año en pareja */
+.ob-mes-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+/* Mod 2 — input de fecha en gastos fijos onboarding */
+.ob-gasto-fecha {
+  width: 100%; font-size: 10px; padding: 3px 6px; margin-top: 3px;
+  border-radius: 7px; border: 1px solid var(--borde);
+  background: #f9f9f9; color: var(--texto2);
+}
+.ob-gasto-fecha:focus { outline: none; border-color: #3a7a3a; }
+
+/* Mod 3 — consumos en cuotas dentro del form de tarjeta */
+.ob-consumo-item {
+  background: #fff; border-radius: 9px; padding: 9px 10px;
+  border: 1px solid #c8e6c0; margin-bottom: 6px;
+}
+.ob-consumo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+.ob-consumo-calc { font-size: 10px; color: #3a7a3a; font-weight: 600; text-align: right; margin-top: 5px; }
+.ob-consumo-del { text-align: right; font-size: 10px; color: #9a1a1a; cursor: pointer; margin-top: 3px; }
+.ob-add-consumo-btn {
+  width: 100%; padding: 6px; border-radius: 8px;
+  border: 1px dashed #a5d6a7; background: transparent;
+  font-size: 11px; color: #3a6a3a; cursor: pointer; margin: 6px 0 2px;
+}
+.ob-consumo-total {
+  font-size: 11px; font-weight: 700; color: #1a4a1a;
+  text-align: right; padding: 4px 0 6px;
+}
+/* ── Mod 1: input nombre gasto personalizado ── */
+.ob-gasto-nombre-input {
+  border: none; background: transparent; outline: none;
+  width: 100%; padding: 0;
+  font-size: 12px; font-weight: 600; color: var(--texto);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+.ob-gasto-nombre-input:focus { border-bottom: 1.5px solid #3a7a3a; }
+
+/* ══════════════════════════════════════
+   GFyT — Gastos Fijos y Tarjetas screen
+══════════════════════════════════════ */
+.gft-sec-label {
+  padding: 4px 14px 6px;
+  font-size: 10px; font-weight: 700; color: #3a5a3a;
+  text-transform: uppercase; letter-spacing: .5px;
+  display: flex; align-items: center; gap: 5px;
+}
+.gft-sec-label i { font-size: 13px; color: #5a8a5a; }
+
+/* Fila de gasto fijo */
+.gft-fijo-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 13px; border-radius: 13px;
+  border: .5px solid var(--borde); background: var(--card);
+  margin: 0 14px 7px;
+}
+.gft-fijo-ico {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.gft-fijo-info { flex: 1; min-width: 0; }
+.gft-fijo-nombre { font-size: 12px; font-weight: 600; color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gft-fijo-fecha  { font-size: 10px; color: var(--texto2); margin-top: 1px; }
+.gft-fijo-monto  { font-size: 13px; font-weight: 700; color: var(--texto); flex-shrink: 0; }
+
+/* Tarjeta en la nueva pantalla */
+.gft-tarjeta-card {
+  border-radius: 14px; border: 1px solid var(--borde);
+  background: var(--card); margin: 0 14px 8px; overflow: hidden;
+}
+.gft-tarjeta-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+.gft-tarjeta-ico {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--verde-suave); display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0;
+}
+.gft-tarjeta-ico i { font-size: 18px; color: #2a6a2a; }
+.gft-tarjeta-info  { flex: 1; min-width: 0; }
+.gft-tarjeta-name  { font-size: 13px; font-weight: 700; color: var(--texto); }
+.gft-tarjeta-meta  { font-size: 10px; color: var(--texto2); margin-top: 3px; line-height: 1.5; }
+.gft-tarjeta-right { text-align: right; flex-shrink: 0; }
+.gft-tarjeta-monto { font-size: 16px; font-weight: 700; color: #1a4a1a; }
+.gft-tarjeta-monto-label { font-size: 9px; color: var(--texto2); margin-top: 1px; }
+
+/* Botón "Ver detalle" */
+.gft-ver-det {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px 10px; cursor: pointer;
+  border-top: .5px solid var(--borde); background: #fafafa;
+}
+.gft-ver-det-label { font-size: 11px; font-weight: 600; color: #3a7a3a; display: flex; align-items: center; gap: 5px; }
+.gft-ver-det-chev  { font-size: 14px; color: var(--texto3); transition: transform .25s; }
+.gft-ver-det-chev.open { transform: rotate(180deg); }
+
+/* Sub-acordeón de consumos */
+.gft-det-body { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
+.gft-det-body.open { max-height: 800px; }
+.gft-det-inner { padding: 10px 14px 13px; border-top: .5px solid var(--borde); }
+
+/* Ítem de consumo en el detalle */
+.gft-consumo-item {
+  background: #f9f9f9; border-radius: 11px;
+  padding: 10px 12px; margin-bottom: 7px;
+  border: .5px solid var(--borde);
+}
+.gft-consumo-item:last-child { margin-bottom: 0; }
+.gft-consumo-nombre { font-size: 12px; font-weight: 600; color: var(--texto); margin-bottom: 5px; }
+.gft-consumo-row { display: flex; justify-content: space-between; align-items: flex-end; }
+.gft-consumo-meta { font-size: 10px; color: var(--texto2); line-height: 1.6; }
+.gft-consumo-badge {
+  font-size: 9px; font-weight: 600; padding: 2px 7px;
+  border-radius: 8px; background: var(--verde-suave); color: #1a5a1a;
+  display: inline-block; margin-top: 3px;
+}
+.gft-consumo-monto-mes { font-size: 14px; font-weight: 700; color: #1a4a1a; }
+.gft-consumo-monto-label { font-size: 9px; color: var(--texto2); text-align: right; }
+
+/* ── BOTONES EDITAR GFyT ── */
+.gft-edit-btn {
+  display:inline-flex; align-items:center; gap:3px;
+  font-size:9px; font-weight:600; color:#3a7a3a;
+  background:#f0f8f0; border:1px solid #b8d8b8;
+  border-radius:7px; padding:3px 7px; cursor:pointer;
+  transition: background .15s, border-color .15s;
+  white-space:nowrap;
+}
+.gft-edit-btn:hover { background:#dff0df; border-color:#3a7a3a; }
+.gft-edit-btn i { font-size:10px; }
+
+/* ── MODAL EDITAR CONSUMOS (filas dinámicas) ── */
+.mec-row {
+  background:#f9f9f9; border-radius:10px; padding:10px;
+  border:1px solid var(--borde); margin-bottom:8px;
+}
+.mec-row-title {
+  font-size:10px; font-weight:700; color:#3a5a3a;
+  margin-bottom:7px; display:flex; align-items:center; gap:5px;
+}
+.mec-row-title i { font-size:12px; color:#5a8a5a; }
+.mec-grid3 { display:grid; grid-template-columns:1fr 80px 60px; gap:7px; }
+
+/* ══ AUTH OVERLAY ══════════════════════════════════════ */
+.auth-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #1a2e1a;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px;
+}
+.auth-overlay.hidden { display: none; }
+.auth-logo {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 28px;
+}
+.auth-logo i { font-size: 32px; color: #81c784; }
+.auth-logo span { font-size: 20px; font-weight: 700; color: #e8f5e9; }
+.auth-card {
+  background: #fff; border-radius: 22px;
+  padding: 24px 22px; width: 100%; max-width: 340px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+.auth-tabs {
+  display: flex; gap: 0; margin-bottom: 20px;
+  background: #f0ede8; border-radius: 11px; padding: 3px;
+}
+.auth-tab {
+  flex: 1; padding: 8px; border-radius: 9px; border: none;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  background: transparent; color: #666; transition: all .2s;
+}
+.auth-tab.active { background: #1a2e1a; color: #c8e6c9; }
+.auth-field { margin-bottom: 12px; }
+.auth-field label { font-size: 11px; color: #666; display: block; margin-bottom: 4px; }
+.auth-field input {
+  width: 100%; font-size: 13px; padding: 9px 11px;
+  border-radius: 10px; border: 1px solid #ddd;
+  background: #f9f9f9; color: #1a1a1a; outline: none;
+  transition: border-color .15s;
+}
+.auth-field input:focus { border-color: #3a7a3a; }
+.auth-btn {
+  width: 100%; padding: 12px; border-radius: 12px;
+  background: #1a2e1a; color: #c8e6c9;
+  font-size: 14px; font-weight: 700; border: none;
+  cursor: pointer; margin-top: 4px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: opacity .2s;
+}
+.auth-btn:disabled { opacity: .6; cursor: not-allowed; }
+.auth-error {
+  font-size: 11px; color: #c0392b;
+  background: #ffeaea; border-radius: 9px;
+  padding: 8px 11px; margin-bottom: 12px;
+  border: 1px solid #f5c6c6; display: none;
+}
+.auth-error.show { display: block; }
+.auth-success {
+  font-size: 11px; color: #1a7a1a;
+  background: #eafaea; border-radius: 9px;
+  padding: 8px 11px; margin-bottom: 12px;
+  border: 1px solid #b8d8b8; display: none;
+}
+.auth-success.show { display: block; }
+.auth-spinner { width: 16px; height: 16px; border: 2px solid #c8e6c9; border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.auth-footer { font-size: 11px; color: #a5d6a7; text-align: center; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH OVERLAY — Login / Registro ══════════════════ -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-logo">
+    <i class="ti ti-chart-pie-2"></i>
+    <span>Copiloto Financiero</span>
+  </div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Iniciar sesión</button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Registrarse</button>
+    </div>
+
+    <div id="auth-error" class="auth-error"></div>
+    <div id="auth-success" class="auth-success"></div>
+
+    <div class="auth-field">
+      <label><i class="ti ti-mail" style="font-size:10px;vertical-align:-1px"></i> Correo electrónico</label>
+      <input type="email" id="auth-email" placeholder="ejemplo@correo.com" autocomplete="email">
+    </div>
+    <div class="auth-field">
+      <label><i class="ti ti-lock" style="font-size:10px;vertical-align:-1px"></i> Contraseña</label>
+      <input type="password" id="auth-password" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+    </div>
+    <div class="auth-field" id="auth-confirm-wrap" style="display:none">
+      <label><i class="ti ti-lock-check" style="font-size:10px;vertical-align:-1px"></i> Confirmar contraseña</label>
+      <input type="password" id="auth-confirm" placeholder="Repetí la contraseña" autocomplete="new-password">
+    </div>
+
+    <button class="auth-btn" id="auth-submit-btn" onclick="submitAuth()">
+      <span id="auth-btn-label">Ingresar</span>
+    </button>
+  </div>
+  <div class="auth-footer">Tus datos están protegidos y son privados.</div>
+</div>
+
+<!-- MODAL TARJETA (app principal) -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">
+      Nueva tarjeta
+      <span class="modal-close" onclick="cerrarModal()"><i class="ti ti-x"></i></span>
+    </div>
+    <div class="mf"><label>Nombre de la tarjeta</label><input type="text" id="m-nombre" placeholder="Ej: Visa Galicia"></div>
+    <div class="mg">
+      <div class="mf"><label>Red</label>
+        <select id="m-red"><option>Visa</option><option>Mastercard</option><option>Naranja X</option><option>Cabal</option><option>Amex</option></select>
+      </div>
+      <div class="mf"><label>Cierre de tarjeta</label><input type="number" id="m-cierre" placeholder="15" min="1" max="31"></div>
+    </div>
+    <div class="mg">
+      <div class="mf"><label>Vencimiento de pago</label><input type="number" id="m-venc" placeholder="20" min="1" max="31"></div>
+      <div class="mf"><label>Límite ($)</label><input type="number" id="m-limite" placeholder="300000"></div>
+    </div>
+    <div class="mf"><label>Consumo actual ($)</label><input type="number" id="m-consumo" placeholder="0"></div>
+    <button class="btn-add" onclick="agregarTarjeta()"><i class="ti ti-check" style="font-size:13px;vertical-align:-2px;margin-right:5px"></i>Agregar tarjeta</button>
+  </div>
+</div>
+
+<div class="phone">
+  <div class="status-bar">
+    <span id="app-clock">9:41</span>
+    <span>Copiloto Financiero</span>
+    <span><i class="ti ti-wifi" style="font-size:11px"></i> 100%</span>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       ONBOARDING OVERLAY
+  ══════════════════════════════════════ -->
+  <div class="ob-overlay" id="ob-overlay">
+
+    <div class="ob-header">
+      <div class="ob-logo">
+        <i class="ti ti-chart-pie-2"></i>
+        <span>Copiloto Financiero</span>
+      </div>
+      <div class="ob-steps" id="ob-steps-bar">
+        <!-- generados por JS -->
+      </div>
+    </div>
+
+    <div class="ob-body">
+      <div class="ob-steps-wrapper" id="ob-wrapper">
+
+        <!-- ── PASO 1: Bienvenida + nombre ── -->
+        <div class="ob-step-panel" id="ob-p1">
+          <div class="ob-title">¡Hola! Soy tu<br>Copiloto Financiero 👋</div>
+          <div class="ob-subtitle">En 4 pasos rápidos configuro tu mes para que tengas todo bajo control.</div>
+
+          <div class="ob-field">
+            <label>¿Cómo te llamás?</label>
+            <input class="ob-input" id="ob-nombre" type="text" placeholder="Tu nombre" maxlength="24" autocomplete="off">
+          </div>
+
+          <div class="ob-field">
+            <label>N° de celular (WhatsApp) <span style="color:#c0392b">*</span></label>
+            <input class="ob-input" id="ob-whatsapp" type="tel" placeholder="Ej: 3874000000" autocomplete="off">
+          </div>
+
+          <div class="ob-field">
+            <label>Correo Electrónico <span style="color:#c0392b">*</span></label>
+            <input class="ob-input" id="ob-email" type="email" placeholder="ejemplo@correo.com" autocomplete="off">
+          </div>
+
+          <div class="ob-field">
+            <label>¿En qué mes y año estamos cargando?</label>
+            <div class="ob-mes-pair">
+              <select class="ob-input" id="ob-mes-num" style="font-size:13px;font-weight:500">
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+              </select>
+              <select class="ob-input" id="ob-anio" style="font-size:13px;font-weight:500">
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+                <option value="2030">2030</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="ob-info-pill">
+            <i class="ti ti-lock"></i>
+            <span>Todo queda guardado en tu dispositivo. Nada se envía a ningún servidor.</span>
+          </div>
+
+          <button class="ob-next-btn" onclick="obNext(1)">
+            Continuar <i class="ti ti-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- ── PASO 2: Ingreso mensual ── -->
+        <div class="ob-step-panel" id="ob-p2">
+          <div class="ob-title">Tu ingreso<br>de este mes 💰</div>
+          <div class="ob-subtitle">Ingresá el total neto que recibís (sueldo, changas, alquileres, etc.).</div>
+
+          <div class="ob-field">
+            <label>Sueldo / ingreso principal</label>
+            <div class="ob-input-prefix-wrap">
+              <span class="ob-prefix">$</span>
+              <input class="ob-input" id="sueldoInput" type="number" placeholder="0" min="0"
+                oninput="actualizarTotalIngreso()">
+            </div>
+          </div>
+
+          <div class="ob-shortcuts">
+            <button class="ob-shortcut" onclick="setIngreso(200000)">$200.000</button>
+            <button class="ob-shortcut" onclick="setIngreso(300000)">$300.000</button>
+            <button class="ob-shortcut" onclick="setIngreso(400000)">$400.000</button>
+            <button class="ob-shortcut" onclick="setIngreso(500000)">$500.000</button>
+            <button class="ob-shortcut" onclick="setIngreso(600000)">$600.000</button>
+            <button class="ob-shortcut" onclick="setIngreso(800000)">$800.000</button>
+          </div>
+
+          <div class="ob-field" style="margin-top:12px">
+            <label>Otros ingresos <span style="font-weight:400;color:var(--texto3)">(changas, alquileres, extras — opcional)</span></label>
+            <div class="ob-input-prefix-wrap">
+              <span class="ob-prefix">$</span>
+              <input class="ob-input" id="otrosIngresosInput" type="number" placeholder="0" min="0"
+                oninput="actualizarTotalIngreso()">
+            </div>
+          </div>
+
+          <div class="ob-field" style="margin-top:12px">
+            <label>Mi ahorro del mes <i class="ti ti-piggy-bank" style="font-size:13px;vertical-align:-2px;color:#3a7a3a"></i> <span style="font-weight:400;color:var(--texto3)">(¿cuánto querés reservar para ahorro? — opcional)</span></label>
+            <div class="ob-input-prefix-wrap">
+              <span class="ob-prefix">$</span>
+              <input class="ob-input" id="ahorroObInput" type="number" placeholder="0" min="0">
+            </div>
+          </div>
+
+          <!-- Total calculado en tiempo real -->
+          <div id="ob-total-ingreso" style="display:none;background:var(--verde-suave);border:1px solid #c8e6c0;border-radius:11px;padding:10px 14px;margin-top:8px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;color:#3a5a3a;font-weight:600">Total ingreso del mes</span>
+            <span id="ob-total-ingreso-val" style="font-size:16px;font-weight:700;color:#1a4a1a">$0</span>
+          </div>
+
+          <div class="ob-info-pill" style="margin-top:12px">
+            <i class="ti ti-info-circle"></i>
+            <span>Si cobrás quincena, sumá las dos partes en "sueldo". Usá "otros ingresos" para changas o ingresos variables.</span>
+          </div>
+
+          <button class="ob-next-btn" onclick="obNext(2)">
+            Continuar <i class="ti ti-arrow-right"></i>
+          </button>
+          <button class="ob-back-btn" onclick="obBack(2)">← Volver</button>
+        </div>
+
+        <!-- ── PASO 3: Gastos fijos ── -->
+        <div class="ob-step-panel" id="ob-p3">
+          <div class="ob-title">Gastos fijos<br>del mes 📋</div>
+          <div class="ob-subtitle">Marcá los que tenés y ajustá los montos. Podés agregar más abajo.</div>
+
+          <div class="ob-gasto-list" id="ob-gasto-list">
+            <!-- generado por JS -->
+          </div>
+
+          <button class="ob-add-gasto" onclick="obAddGastoRow()">
+            <i class="ti ti-plus"></i>
+            <span>Agregar gasto personalizado</span>
+          </button>
+
+          <button class="ob-next-btn" style="margin-top:14px" onclick="obNext(3)">
+            Continuar <i class="ti ti-arrow-right"></i>
+          </button>
+          <button class="ob-back-btn" onclick="obBack(3)">← Volver</button>
+        </div>
+
+        <!-- ── PASO 4: Tarjetas + alimentos ── -->
+        <div class="ob-step-panel" id="ob-p4">
+          <div class="ob-title">Tarjetas y<br>presupuesto 💳</div>
+          <div class="ob-subtitle">Agregá tus tarjetas de crédito (si tenés) y definí cuánto reservás para comida.</div>
+
+          <div class="ob-field">
+            <label>Reserva mensual para alimentos</label>
+            <div class="ob-input-prefix-wrap">
+              <span class="ob-prefix">$</span>
+              <input class="ob-input" id="ob-alimentos" type="number" placeholder="0" min="0">
+            </div>
+          </div>
+          <div class="ob-shortcuts" style="margin-bottom:16px">
+            <button class="ob-shortcut" onclick="setAlimentos(50000)">$50.000</button>
+            <button class="ob-shortcut" onclick="setAlimentos(80000)">$80.000</button>
+            <button class="ob-shortcut" onclick="setAlimentos(100000)">$100.000</button>
+            <button class="ob-shortcut" onclick="setAlimentos(150000)">$150.000</button>
+          </div>
+
+          <div style="font-size:11px;font-weight:600;color:#3a5a3a;margin-bottom:8px">Tarjetas de crédito <span style="font-weight:400;color:var(--texto3)">(opcional)</span></div>
+
+          <div class="ob-card-list" id="ob-card-list"></div>
+
+          <!-- mini form agregar tarjeta -->
+          <div class="ob-card-form" id="ob-card-form">
+            <div class="ob-card-form-title"><i class="ti ti-credit-card" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>Nueva tarjeta</div>
+            <div class="ob-cf-field" style="margin-bottom:8px">
+              <label>Nombre de la tarjeta</label>
+              <input type="text" id="ocf-nombre" placeholder="Ej: Visa Galicia">
+            </div>
+            <div class="ob-cf-grid">
+              <div class="ob-cf-field">
+                <label>Red</label>
+                <select id="ocf-red"><option>Visa</option><option>Mastercard</option><option>Naranja X</option><option>Cabal</option><option>Amex</option></select>
+              </div>
+              <div class="ob-cf-field">
+                <label>Límite ($)</label>
+                <input type="number" id="ocf-limite" placeholder="300000">
+              </div>
+              <div class="ob-cf-field">
+                <label>Vencimiento de pago</label>
+                <input type="number" id="ocf-venc" placeholder="20" min="1" max="31">
+              </div>
+              <div class="ob-cf-field">
+                <label>Cierre de tarjeta</label>
+                <input type="number" id="ocf-cierre" placeholder="15" min="1" max="31">
+              </div>
+            </div>
+            <div style="font-size:10px;font-weight:600;color:#3a5a3a;margin:10px 0 4px">
+              <i class="ti ti-receipt" style="font-size:12px;vertical-align:-2px;margin-right:4px"></i>Consumos del mes
+            </div>
+            <div id="ocf-consumo-list"></div>
+            <button type="button" class="ob-add-consumo-btn" onclick="ocfAddConsumo()">
+              <i class="ti ti-plus" style="font-size:11px;vertical-align:-1px"></i> Agregar consumo
+            </button>
+            <div class="ob-consumo-total" id="ocf-total-display">Total cuotas: $0</div>
+            <div class="ob-cf-actions">
+              <button class="ob-cf-cancel" onclick="cancelObCard()">Cancelar</button>
+              <button class="ob-cf-ok" onclick="confirmObCard()"><i class="ti ti-check" style="font-size:12px;vertical-align:-1px;margin-right:4px"></i>Agregar</button>
+            </div>
+          </div>
+
+          <button class="ob-add-gasto" onclick="showObCardForm()" id="ob-add-card-btn">
+            <i class="ti ti-credit-card"></i>
+            <span>Agregar tarjeta de crédito</span>
+          </button>
+
+          <button class="ob-next-btn" style="margin-top:16px" onclick="obFinish()">
+            <i class="ti ti-rocket"></i> ¡Listo, empezar!
+          </button>
+          <button class="ob-back-btn" onclick="obBack(4)">← Volver</button>
+        </div>
+
+      </div><!-- ob-steps-wrapper -->
+    </div><!-- ob-body -->
+
+  </div><!-- ob-overlay -->
+
+  <!-- ══════════════════════════════════════
+       APP PRINCIPAL
+  ══════════════════════════════════════ -->
+  <div class="app-scroll" id="app-scroll">
+
+    <!-- ── PANTALLA INICIO ── -->
+    <div class="screen active" id="scr-inicio">
+      <div class="header">
+        <div class="header-top">
+          <div>
+            <div class="greeting">Buenas tardes,</div>
+            <div class="username" id="ud-nombre">—</div>
+          </div>
+          <i class="ti ti-bell" style="color:#81c784;font-size:19px;margin-top:4px"></i>
+        </div>
+        <div class="sem-pill sem-verde" id="ud-sem">
+          <span class="dot" style="background:#66bb6a"></span>
+          <span id="ud-semlabel">Salud buena</span>
+        </div>
+      </div>
+
+      <div class="balance-card">
+        <div class="bal-label" id="ud-bal-label">Disponible hoy</div>
+        <div class="bal-amount" id="ud-bal">—</div>
+        <div class="bal-sub" id="ud-balsub">—</div>
+        <div class="daily-pill">
+          <span><i class="ti ti-coin" style="font-size:12px;vertical-align:-2px"></i> Gasto diario permitido</span>
+          <span id="ud-diario">—</span>
+        </div>
+      </div>
+
+      <!-- TARJETAS -->
+      <div class="sec">
+        <div class="sec-head">
+          <span class="sec-title"><i class="ti ti-credit-card" style="font-size:13px;vertical-align:-2px;margin-right:3px;color:#5a8a5a"></i>Tarjetas de crédito</span>
+          <span class="sec-link" onclick="abrirModal()"><i class="ti ti-plus" style="font-size:12px"></i> Agregar</span>
+        </div>
+      </div>
+      <div class="cards-scroll" id="cards-scroll"></div>
+
+      <!-- VENCIMIENTOS PRÓXIMOS -->
+      <div class="sec" style="margin-top:10px">
+        <div class="sec-head">
+          <span class="sec-title"><i class="ti ti-alarm" style="font-size:13px;vertical-align:-2px;margin-right:3px;color:#9a6030"></i>Próximos vencimientos</span>
+          <span class="sec-link" onclick="goTo('venc')">Ver todos ↗</span>
+        </div>
+      </div>
+      <div class="venc-scroll" id="venc-chips"></div>
+
+      <!-- ALIMENTOS -->
+      <div class="sec" style="margin-top:10px">
+        <div class="sec-head">
+          <span class="sec-title"><i class="ti ti-basket" style="font-size:13px;vertical-align:-2px;margin-right:3px;color:#5a8a5a"></i>Reserva de alimentos</span>
+          <span class="food-pct" id="ud-food-pct" style="font-size:12px;font-weight:700;color:#3a7a3a">0%</span>
+        </div>
+        <div class="food-card">
+          <div class="bar-track"><div class="bar-fill" id="ud-food-bar" style="width:0%"></div></div>
+          <div class="bar-leg">
+            <span id="ud-food-usado">Usado: $0</span>
+            <span id="ud-food-total">Total: $0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phrase">
+        <div style="font-size:15px;color:#81c784;margin-bottom:4px"><i class="ti ti-quote"></i></div>
+        <div class="phrase-text" id="ud-phrase">Cargá tu mes para ver tu resumen aquí.</div>
+        <div class="phrase-author">— Tu Copiloto</div>
+      </div>
+
+      <div class="acc" id="acc-reservas">
+        <div class="acc-head" onclick="togAcc('acc-reservas')">
+          <span class="acc-head-title">
+  <i class="ti ti-shield-lock"></i>Gastos Fijos / Reservas
+  <span id="acc-reservas-mes" style="font-size:11px;font-weight:400;color:#5a8a5a;margin-left:4px"></span>
+  <span id="acc-reservas-total"
+    style="font-size:11px;font-weight:600;color:#1a7a1a;margin-left:8px;
+           background:var(--verde-suave);padding:1px 8px;border-radius:8px;
+           vertical-align:1px"></span>
+</span>
+          <i class="ti ti-chevron-down acc-chev" id="acc-reservas-chev"></i>
+        </div>
+        <div class="acc-body" id="acc-reservas-body">
+          <div class="acc-inner" id="reservas-list"></div>
+        </div>
+      </div>
+
+      <div class="acc" id="acc-ahorro" style="margin-bottom:6px">
+        <div class="acc-head" onclick="togAcc('acc-ahorro')">
+          <span class="acc-head-title"><i class="ti ti-piggy-bank"></i>Ahorro — <span id="acc-ahorro-resumen" style="font-weight:400;color:#3a7a3a"></span></span>
+          <i class="ti ti-chevron-down acc-chev" id="acc-ahorro-chev"></i>
+        </div>
+        <div class="acc-body" id="acc-ahorro-body">
+          <div class="acc-inner" id="ahorro-detail"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PANTALLA GASTOS FIJOS Y TARJETAS ── -->
+    <div class="screen" id="scr-venc">
+      <div style="padding:16px 14px 10px;display:flex;align-items:center;gap:10px">
+        <span onclick="goTo('inicio')" style="cursor:pointer;color:#3a7a3a;font-size:20px"><i class="ti ti-arrow-left"></i></span>
+        <span style="font-size:15px;font-weight:700;color:var(--texto)" id="venc-titulo">Gastos Fijos y Tarjetas</span>
+      </div>
+
+      <!-- Sección: Gastos Fijos -->
+      <div class="gft-sec-label" style="margin-top:2px">
+        <i class="ti ti-receipt"></i>Gastos Fijos del Mes
+      </div>
+      <div id="gft-fijos-list"></div>
+
+      <!-- Sección: Tarjetas -->
+      <div class="gft-sec-label" style="margin-top:10px">
+        <i class="ti ti-credit-card"></i>Tarjetas de Crédito
+      </div>
+      <div id="gft-tarjetas-list"></div>
+
+      <div style="height:14px"></div>
+    </div>
+
+    <!-- ── PANTALLA HISTORIAL ── -->
+    <div class="screen" id="scr-hist">
+      <div style="padding:16px 14px 10px;display:flex;align-items:center;gap:10px">
+        <span onclick="goTo('inicio')" style="cursor:pointer;color:#3a7a3a;font-size:20px"><i class="ti ti-arrow-left"></i></span>
+        <span style="font-size:15px;font-weight:700;color:var(--texto)">Historial financiero</span>
+      </div>
+      <div class="yr-nav">
+        <button class="yr-btn" onclick="cambiarAnio(-1)"><i class="ti ti-chevron-left" style="font-size:13px"></i></button>
+        <span id="yr-display">2025</span>
+        <button class="yr-btn" onclick="cambiarAnio(1)"><i class="ti ti-chevron-right" style="font-size:13px"></i></button>
+      </div>
+      <div class="hist-sum" id="hist-anual"></div>
+      <div id="hist-months"></div>
+    </div>
+
+    <!-- ── PANTALLA REGISTROS DIARIOS ── -->
+    <div class="screen" id="scr-reg">
+      <div style="padding:16px 14px 10px;display:flex;align-items:center;gap:10px">
+        <span onclick="goTo('inicio')" style="cursor:pointer;color:#3a7a3a;font-size:20px"><i class="ti ti-arrow-left"></i></span>
+        <span style="font-size:15px;font-weight:700;color:var(--texto)">Registros Diarios</span>
+      </div>
+      <div style="padding:0 14px 14px" id="reg-list-wrap">
+        <div id="acc-registros-inner" style="display:flex;flex-direction:column;gap:7px">
+          <div style="padding:8px 0;color:var(--texto3);font-size:12px;text-align:center">Sin registros cargados aún.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PANTALLA PERFIL ── -->
+    <div class="screen" id="scr-perfil">
+      <div style="padding:16px 14px 10px;display:flex;align-items:center;gap:10px">
+        <span onclick="goTo('inicio')" style="cursor:pointer;color:#3a7a3a;font-size:20px"><i class="ti ti-arrow-left"></i></span>
+        <span style="font-size:15px;font-weight:700;color:var(--texto)">Mi Perfil</span>
+      </div>
+      <div style="margin:0 14px">
+        <div style="background:var(--verde-oscuro);border-radius:18px;padding:24px;text-align:center;margin-bottom:14px">
+          <div style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+            <i class="ti ti-user" style="font-size:28px;color:#81c784"></i>
+          </div>
+          <div id="perf-nombre" style="font-size:20px;font-weight:700;color:#e8f5e9">—</div>
+          <div style="font-size:11px;color:#5a8a5a;margin-top:2px">Usuario registrado</div>
+        </div>
+        <div style="background:var(--card);border-radius:14px;border:1px solid var(--borde);overflow:hidden;margin-bottom:14px">
+          <div style="padding:13px 15px;border-bottom:.5px solid var(--borde);display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:9px;background:#e8f5e0;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="ti ti-brand-whatsapp" style="font-size:16px;color:#2a7a2a"></i>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--texto2)">WhatsApp</div>
+              <div id="perf-whatsapp" style="font-size:13px;font-weight:600;color:var(--texto)">—</div>
+            </div>
+          </div>
+          <div style="padding:13px 15px;display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:9px;background:#e8f0ff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="ti ti-mail" style="font-size:16px;color:#1a4a9a"></i>
+            </div>
+            <div>
+              <div style="font-size:10px;color:var(--texto2)">Correo electrónico</div>
+              <div id="perf-email" style="font-size:13px;font-weight:600;color:var(--texto)">—</div>
+            </div>
+          </div>
+        </div>
+        <button onclick="resetOnboarding()" style="width:100%;padding:13px;border-radius:13px;border:1.5px solid #c0392b;background:transparent;font-size:13px;font-weight:600;color:#c0392b;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
+          <i class="ti ti-refresh" style="font-size:15px"></i>Reiniciar configuración
+        </button>
+        <div style="font-size:10px;color:var(--texto3);text-align:center;margin-top:8px">Esto borrará todos tus datos del mes actual.</div>
+        <div style="height:10px"></div>
+        <button onclick="cerrarSesion()" style="width:100%;padding:13px;border-radius:13px;border:1.5px solid #888;background:transparent;font-size:13px;font-weight:600;color:#555;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
+          <i class="ti ti-logout" style="font-size:15px"></i>Cerrar sesión
+        </button>
+        <div id="perf-user-email" style="font-size:10px;color:var(--texto3);text-align:center;margin-top:6px"></div>
+      </div>
+      <div style="height:14px"></div>
+    </div>
+
+  </div><!-- end app-scroll -->
+
+  <div class="nav" id="main-nav">
+    <div class="nav-item active" id="nav-inicio" onclick="goTo('inicio')">
+      <i class="ti ti-home"></i><span>Inicio</span>
+    </div>
+    <div class="nav-item" id="nav-venc" onclick="goTo('venc')" style="position:relative">
+      <i class="ti ti-receipt-2"></i>
+      <div class="nav-badge" id="nav-badge" style="display:none">0</div>
+      <span style="text-align:center;line-height:1.2">Fijos y<br>Tarjetas</span>
+    </div>
+    <div class="nav-item" id="nav-reg" onclick="goTo('reg')">
+      <i class="ti ti-clipboard-list"></i><span style="text-align:center;line-height:1.2">Registros</span>
+    </div>
+    <div class="nav-item" id="nav-hist" onclick="goTo('hist')">
+      <i class="ti ti-chart-bar"></i><span>Historial</span>
+    </div>
+    <div class="nav-item" id="nav-perfil" onclick="goTo('perfil')">
+      <i class="ti ti-user"></i><span>Perfil</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     MODAL CONTROL DE 3 DÍAS
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-control3d">
+  <div class="modal" style="max-height:85vh;overflow-y:auto;scrollbar-width:none">
+    <div class="modal-title">
+      <span><i class="ti ti-calendar-check" style="font-size:15px;vertical-align:-2px;margin-right:6px;color:#3a7a3a"></i>Control cada 3 días</span>
+      <span class="modal-close" onclick="cerrarControl3d()"><i class="ti ti-x"></i></span>
+    </div>
+
+    <div style="background:#fff9e8;border-radius:10px;padding:10px 12px;border:1px solid #f0d890;margin-bottom:14px;font-size:11px;color:#6a4a10">
+      <i class="ti ti-mail" style="font-size:13px;vertical-align:-2px;margin-right:5px;color:#8a6010"></i>
+      Ingresaste desde tu enlace de control. Completá los datos del período.
+    </div>
+
+    <!-- Gastos diarios -->
+    <div style="font-size:11px;font-weight:700;color:#3a5a3a;margin-bottom:8px;border-bottom:.5px solid var(--borde);padding-bottom:6px">
+      <i class="ti ti-shopping-cart" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Gasto del período
+    </div>
+    <div class="mf">
+      <label>Categoría</label>
+      <select id="c3d-cat-sel" onchange="togGastoPersonalizado()">
+        <option>OCIO</option>
+        <option>FARMACIA</option>
+        <option>DEPORTE</option>
+        <option>SALUD</option>
+        <option>SALIR A COMER</option>
+        <option>COMPRA DE INDUMENTARIA PERSONAL</option>
+        <option>GASTOS PERSONALIZADOS</option>
+      </select>
+    </div>
+    <div class="mf" id="c3d-concepto-custom-wrap" style="display:none">
+      <label>Nombre del gasto personalizado</label>
+      <input type="text" id="c3d-concepto-custom" placeholder="Ej: Suscripción streaming">
+    </div>
+    <div class="mf">
+      <label>Monto del gasto ($)</label>
+      <input type="number" id="c3d-monto-gasto" placeholder="0" min="0">
+    </div>
+
+    <!-- Alimentos -->
+    <div style="font-size:11px;font-weight:700;color:#3a5a3a;margin:12px 0 8px;border-bottom:.5px solid var(--borde);padding-bottom:6px">
+      <i class="ti ti-basket" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Reserva de Alimentos
+    </div>
+    <div class="mf">
+      <label>Gasto en comida del período ($)</label>
+      <input type="number" id="c3d-monto-alimentos" placeholder="0" min="0">
+    </div>
+
+    <!-- Tarjeta -->
+    <div style="font-size:11px;font-weight:700;color:#3a5a3a;margin:12px 0 8px;border-bottom:.5px solid var(--borde);padding-bottom:6px">
+      <i class="ti ti-credit-card" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Consumo en Tarjeta (opcional)
+    </div>
+    <div class="mf">
+      <label>Tarjeta</label>
+      <select id="c3d-tarjeta-sel"><option disabled selected>Seleccioná una tarjeta</option></select>
+    </div>
+    <div class="mf">
+      <label>Concepto del consumo</label>
+      <input type="text" id="c3d-concepto-tarj" placeholder="Ej: Zapatillas Nike">
+    </div>
+    <div class="mg">
+      <div class="mf">
+        <label>Monto total ($)</label>
+        <input type="number" id="c3d-monto-tarj" placeholder="0" min="0">
+      </div>
+      <div class="mf">
+        <label>Cuotas</label>
+        <input type="number" id="c3d-cuotas" placeholder="1" min="1" value="1">
+      </div>
+    </div>
+
+    <button class="btn-add" onclick="guardarControl3d()">
+      <i class="ti ti-device-floppy" style="font-size:13px;vertical-align:-2px;margin-right:5px"></i>Guardar registro
+    </button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  SUPABASE — Configuración y Autenticación
+// ══════════════════════════════════════════════════════
+// ⚠️  REEMPLAZÁ estos dos valores con los de tu proyecto Supabase:
+//     Dashboard → Settings → API
+const SUPABASE_URL      = 'https://ezedekglukvmfwlpbjox.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZWRla2dsdWt2bWZ3bHBiam94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNjUwMjgsImV4cCI6MjA5NDk0MTAyOH0.SeZ9A6snjoiOELA0gpgnBrADnr2FLkpgNryN5R3avy4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let _currentUserId  = null;  // uuid del usuario logueado
+let _authMode       = 'login'; // 'login' | 'register'
+
+// ── Mostrar / ocultar pantalla de auth ───────────────
+function mostrarAuthOverlay(){
+  document.getElementById('auth-overlay').classList.remove('hidden');
+}
+function ocultarAuthOverlay(){
+  document.getElementById('auth-overlay').classList.add('hidden');
+}
+
+// ── Cambiar tab login / registro ─────────────────────
+function switchAuthTab(mode){
+  _authMode = mode;
+  document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+  document.getElementById('tab-register').classList.toggle('active', mode === 'register');
+  document.getElementById('auth-confirm-wrap').style.display = mode === 'register' ? 'block' : 'none';
+  document.getElementById('auth-btn-label').textContent = mode === 'login' ? 'Ingresar' : 'Crear cuenta';
+  document.getElementById('auth-password').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+  limpiarAuthMensajes();
+}
+
+function limpiarAuthMensajes(){
+  const err = document.getElementById('auth-error');
+  const ok  = document.getElementById('auth-success');
+  err.classList.remove('show'); err.textContent = '';
+  ok.classList.remove('show');  ok.textContent  = '';
+}
+function mostrarAuthError(msg){
+  const el = document.getElementById('auth-error');
+  el.textContent = msg; el.classList.add('show');
+  document.getElementById('auth-success').classList.remove('show');
+}
+function mostrarAuthOk(msg){
+  const el = document.getElementById('auth-success');
+  el.textContent = msg; el.classList.add('show');
+  document.getElementById('auth-error').classList.remove('show');
+}
+function setAuthLoading(v){
+  const btn = document.getElementById('auth-submit-btn');
+  const lbl = document.getElementById('auth-btn-label');
+  btn.disabled = v;
+  lbl.innerHTML = v
+    ? '<span class="auth-spinner"></span>'
+    : (_authMode === 'login' ? 'Ingresar' : 'Crear cuenta');
+}
+
+// ── Submit: login o registro ─────────────────────────
+async function submitAuth(){
+  const email    = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  limpiarAuthMensajes();
+
+  if(!email || !email.includes('@')){ mostrarAuthError('Ingresá un correo válido.'); return; }
+  if(password.length < 6){ mostrarAuthError('La contraseña debe tener al menos 6 caracteres.'); return; }
+
+  if(_authMode === 'register'){
+    const confirm = document.getElementById('auth-confirm').value;
+    if(password !== confirm){ mostrarAuthError('Las contraseñas no coinciden.'); return; }
+  }
+
+  setAuthLoading(true);
+  try {
+    let result;
+    if(_authMode === 'login'){
+      result = await sb.auth.signInWithPassword({ email, password });
+    } else {
+      result = await sb.auth.signUp({ email, password });
+    }
+
+    if(result.error) throw result.error;
+
+    if(_authMode === 'register' && !result.data.session){
+      // Supabase requiere confirmación de email
+      mostrarAuthOk('¡Cuenta creada! Revisá tu correo para confirmar tu email y luego iniciá sesión.');
+      switchAuthTab('login');
+      setAuthLoading(false);
+      return;
+    }
+
+    _currentUserId = result.data.session.user.id;
+    mostrarEmailUsuario(result.data.session.user.email);
+    await cargarDatosDesdeSupabase();
+    ocultarAuthOverlay();
+
+  } catch(e){
+    const msg = e.message || 'Error al autenticar.';
+    if(msg.includes('Invalid login credentials'))
+      mostrarAuthError('Correo o contraseña incorrectos.');
+    else if(msg.includes('User already registered'))
+      mostrarAuthError('Ya existe una cuenta con ese correo. Iniciá sesión.');
+    else if(msg.includes('Email not confirmed'))
+      mostrarAuthError('Confirmá tu email antes de ingresar.');
+    else
+      mostrarAuthError(msg);
+  }
+  setAuthLoading(false);
+}
+
+// ── Cerrar sesión ────────────────────────────────────
+async function cerrarSesion(){
+  if(!confirm('¿Cerrás sesión? Tus datos quedan guardados en la nube.')) return;
+  await sb.auth.signOut();
+  localStorage.removeItem('copiloto_datos');
+  localStorage.removeItem('copiloto_registros');
+  localStorage.removeItem('copiloto_ultimo_control');
+  location.reload();
+}
+
+// ── Mostrar email en perfil ──────────────────────────
+function mostrarEmailUsuario(email){
+  const el = document.getElementById('perf-user-email');
+  if(el) el.textContent = 'Sesión: ' + email;
+}
+
+// ══════════════════════════════════════════════════════
+//  SUPABASE — Helpers de persistencia
+// ══════════════════════════════════════════════════════
+
+// Guardar datos principales (upsert por user_id)
+async function sbGuardarDatos(datosObj){
+  if(!_currentUserId) return;
+  try {
+    await sb.from('copiloto_datos').upsert({
+      user_id: _currentUserId,
+      datos:   datosObj,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+  } catch(e){ console.warn('sbGuardarDatos:', e.message); }
+}
+
+// Guardar array de registros diarios (reemplaza todos los del usuario)
+async function sbGuardarRegistros(regs){
+  if(!_currentUserId) return;
+  try {
+    // Borra los anteriores y reinserta
+    await sb.from('copiloto_registros').delete().eq('user_id', _currentUserId);
+    if(regs.length){
+      const rows = regs.map(r => ({
+        user_id: _currentUserId,
+        registro: r,
+        fecha: r.fecha
+      }));
+      await sb.from('copiloto_registros').insert(rows);
+    }
+  } catch(e){ console.warn('sbGuardarRegistros:', e.message); }
+}
+
+// Guardar último control de 3 días (dentro de copiloto_datos como campo extra)
+async function sbGuardarUltimoControl(fechaStr){
+  if(!_currentUserId) return;
+  try {
+    // Leemos el row actual y le agregamos el campo
+    const { data } = await sb.from('copiloto_datos')
+      .select('datos').eq('user_id', _currentUserId).single();
+    if(data){
+      const datosActualizados = { ...(data.datos || {}), _ultimoControl: fechaStr };
+      await sbGuardarDatos(datosActualizados);
+    }
+  } catch(e){ console.warn('sbGuardarUltimoControl:', e.message); }
+}
+
+// Cargar todos los datos del usuario desde Supabase
+async function cargarDatosDesdeSupabase(){
+  if(!_currentUserId) return;
+  try {
+    // 1. Datos principales
+    const { data: rowDatos } = await sb.from('copiloto_datos')
+      .select('datos').eq('user_id', _currentUserId).single();
+
+    // 2. Registros diarios
+    const { data: rowsReg } = await sb.from('copiloto_registros')
+      .select('registro').eq('user_id', _currentUserId).order('fecha', { ascending: true });
+
+    if(rowDatos && rowDatos.datos && Object.keys(rowDatos.datos).length){
+      const datos = rowDatos.datos;
+      // Guardar en localStorage como caché
+      try { localStorage.setItem('copiloto_datos', JSON.stringify(datos)); } catch(e){}
+
+      // Registros
+      const regs = (rowsReg || []).map(r => r.registro);
+      registrosDiarios = regs;
+      try { localStorage.setItem('copiloto_registros', JSON.stringify(regs)); } catch(e){}
+
+      // Último control
+      if(datos._ultimoControl){
+        try { localStorage.setItem('copiloto_ultimo_control', datos._ultimoControl); } catch(e){}
+      }
+
+      iniciarApp(datos);
+      document.getElementById('ob-overlay').classList.add('hidden');
+    }
+    // Si no hay datos en Supabase, el onboarding queda visible (primera vez del usuario)
+  } catch(e){ console.warn('cargarDatosDesdeSupabase:', e.message); }
+}
+
+// ══════════════════════════════════════════════════════
+//  ONBOARDING — Estado & Lógica
+// ══════════════════════════════════════════════════════
+const MESES_LABEL = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const MESES_NOMBRE = ['','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+let obStep = 1;
+const OB_TOTAL = 4;
+
+// Gastos fijos por defecto (pre-cargados en el paso 3)
+const GASTOS_DEFAULT = [
+  { id:1,  nombre:'Alquiler / Expensas', cat:'vivienda', icono:'ti-home',               dia:1,  monto:85000, on:true },
+  { id:2,  nombre:'Expensas',            cat:'vivienda', icono:'ti-building',           dia:5,  monto:35000, on:false },
+  { id:3,  nombre:'Luz',                 cat:'servicio', icono:'ti-bolt',               dia:10, monto:18000, on:true },
+  { id:4,  nombre:'Gas',                 cat:'servicio', icono:'ti-flame',              dia:12, monto:12000, on:true },
+  { id:5,  nombre:'Internet',            cat:'servicio', icono:'ti-wifi',               dia:15, monto:14000, on:true },
+  { id:6,  nombre:'Teléfono celular',    cat:'servicio', icono:'ti-device-mobile',      dia:17, monto:9800,  on:false },
+  { id:7,  nombre:'Obra social / Prepaga',cat:'salud',  icono:'ti-heart-rate-monitor', dia:18, monto:22000, on:true },
+  { id:8,  nombre:'Agua',                cat:'servicio', icono:'ti-droplet',            dia:22, monto:6000,  on:false },
+  { id:9,  nombre:'Seguro del hogar',    cat:'otro',     icono:'ti-shield',             dia:25, monto:18000, on:false },
+  { id:10, nombre:'Colegio / Jardín',    cat:'educacion',icono:'ti-school',             dia:28, monto:45000, on:false },
+];
+let obGastos = JSON.parse(JSON.stringify(GASTOS_DEFAULT));
+let obTarjetas = [];
+let obCustomId = 100;
+let tempConsumos = [];
+
+function initStepsBar(){
+  const bar = document.getElementById('ob-steps-bar');
+  let html = '';
+  for(let i=1;i<=OB_TOTAL;i++){
+    const cls = i < obStep ? 'done' : i===obStep ? 'active' : '';
+    const w = i < obStep ? '16px' : i===obStep ? '28px' : '8px';
+    html += `<div class="ob-step-dot ${cls}" id="sdot-${i}" style="width:${w}"></div>`;
+  }
+  html += `<span class="ob-step-txt">Paso ${obStep} de ${OB_TOTAL}</span>`;
+  bar.innerHTML = html;
+}
+
+function updateStepsBar(){
+  for(let i=1;i<=OB_TOTAL;i++){
+    const dot = document.getElementById('sdot-'+i);
+    if(!dot) return initStepsBar();
+    dot.className = 'ob-step-dot ' + (i<obStep?'done':i===obStep?'active':'');
+    dot.style.width = i<obStep?'16px':i===obStep?'28px':'8px';
+  }
+  document.querySelector('.ob-step-txt').textContent = `Paso ${obStep} de ${OB_TOTAL}`;
+}
+
+function slideToStep(n){
+  obStep = n;
+  updateStepsBar();
+  const pct = (n-1)*25;
+  document.getElementById('ob-wrapper').style.transform = `translateX(-${pct}%)`;
+  document.querySelector('.ob-body').scrollTop = 0;
+}
+
+function obNext(from){
+  if(from===1){
+    const nombre = document.getElementById('ob-nombre').value.trim();
+    if(!nombre){ document.getElementById('ob-nombre').focus(); shakeinput('ob-nombre'); return; }
+    const wa = document.getElementById('ob-whatsapp').value.trim();
+    if(!wa){ document.getElementById('ob-whatsapp').focus(); shakeinput('ob-whatsapp'); return; }
+    const em = document.getElementById('ob-email').value.trim();
+    if(!em || !em.includes('@')){ document.getElementById('ob-email').focus(); shakeinput('ob-email'); return; }
+    // Resetear fechas auto-generadas al cambiar mes/año
+    obGastos.forEach(g=>{ if(!g._fechaManual) g.fecha = null; });
+    renderObGastos();
+  }
+  if(from===2){
+    const sueldo = parseFloat(document.getElementById('sueldoInput').value);
+    if(!sueldo||sueldo<=0){ shakeinput('sueldoInput'); return; }
+  }
+  slideToStep(from+1);
+}
+function obBack(from){ slideToStep(from-1); }
+
+function shakeinput(id){
+  const el = document.getElementById(id);
+  el.style.borderColor='#c0392b';
+  el.style.animation='shake .3s';
+  el.addEventListener('animationend',()=>{el.style.animation='';},{ once:true });
+}
+
+// ── Gastos en el paso 3 ──────────────────────────────
+function renderObGastos(){
+  const mesSel = parseInt(document.getElementById('ob-mes-num')?.value) || 1;
+  const anioSel = parseInt(document.getElementById('ob-anio')?.value) || 2026;
+  const mm = String(mesSel).padStart(2,'0');
+  const list = document.getElementById('ob-gasto-list');
+  list.innerHTML = obGastos.map((g,i)=>{
+    const dd = String(Math.min(g.dia||15, 28)).padStart(2,'0');
+    const fechaVal = g.fecha || `${anioSel}-${mm}-${dd}`;
+    // Gastos personalizados (id >= 100) usan input editable; los default usan div estático
+    const nombreEl = g.id >= 100
+      ? `<input type="text" class="ob-gasto-nombre-input" maxlength="30"
+            placeholder="Nombre del gasto" value="${g.nombre}"
+            oninput="obGastos[${i}].nombre=this.value">`
+      : `<div class="ob-gasto-nombre">${g.nombre}</div>`;
+    return `
+    <div class="ob-gasto-row ${g.on?'activo':''}" id="ogrow-${i}">
+      <div class="ob-gasto-chk ${g.on?'on':''}" id="ogchk-${i}" onclick="togObGasto(${i})">
+        <i class="ti ti-check"></i>
+      </div>
+      <i class="ti ${g.icono} ob-gasto-ico" style="color:${g.on?'#2a7a2a':'var(--texto3)'}"></i>
+      <div class="ob-gasto-info">
+        ${nombreEl}
+        <input type="date" class="ob-gasto-fecha" value="${fechaVal}"
+          ${g.on?'':'style="opacity:.4"'}
+          onchange="obGastos[${i}].fecha=this.value;obGastos[${i}]._fechaManual=true;obGastos[${i}].dia=parseInt(this.value.split('-')[2])||${g.dia||15}">
+      </div>
+      <input class="ob-gasto-monto" type="number" value="${g.monto}"
+        onchange="obGastos[${i}].monto=parseFloat(this.value)||0"
+        ${g.on?'':'style="opacity:.4"'}>
+    </div>`;
+  }).join('');
+}
+
+function togObGasto(i){
+  obGastos[i].on = !obGastos[i].on;
+  renderObGastos();
+}
+
+function obAddGastoRow(){
+  obCustomId++;
+  const mesSel = parseInt(document.getElementById('ob-mes-num')?.value) || 1;
+  const anioSel = parseInt(document.getElementById('ob-anio')?.value) || 2026;
+  const mm = String(mesSel).padStart(2,'0');
+  const fechaDefault = `${anioSel}-${mm}-15`;
+  obGastos.push({
+    id: obCustomId, nombre:'Gasto personalizado', cat:'otro',
+    icono:'ti-circle', dia:15, fecha: fechaDefault, _fechaManual:false, monto:0, on:true
+  });
+  renderObGastos();
+  setTimeout(()=>{
+    const list = document.getElementById('ob-gasto-list');
+    const last = list.lastElementChild;
+    last.scrollIntoView({behavior:'smooth',block:'nearest'});
+    const inp = last.querySelector('.ob-gasto-monto');
+    if(inp) inp.focus();
+  }, 50);
+}
+
+// ── Tarjetas en el paso 4 ───────────────────────────
+function renderObCards(){
+  const list = document.getElementById('ob-card-list');
+  if(!obTarjetas.length){ list.innerHTML=''; return; }
+  list.innerHTML = obTarjetas.map((t,i)=>`
+    <div class="ob-card-item">
+      <span class="ob-card-ico">💳</span>
+      <div class="ob-card-info">
+        <div class="ob-card-name">${t.nombre} <span style="font-size:10px;color:var(--texto3);font-weight:400">${t.red}</span></div>
+        <div class="ob-card-sub">${(t.consumos||[]).length} consumo(s) · Cuotas: $${Math.round(t.consumo).toLocaleString('es-AR')} · Vence día ${t.vencimiento}</div>
+      </div>
+      <span class="ob-card-del" onclick="obDelCard(${i})"><i class="ti ti-trash"></i></span>
+    </div>`).join('');
+}
+
+function showObCardForm(){
+  tempConsumos = [];
+  renderOcfConsumos();
+  document.getElementById('ob-card-form').classList.add('show');
+  document.getElementById('ob-add-card-btn').style.display='none';
+}
+function cancelObCard(){
+  tempConsumos = [];
+  renderOcfConsumos();
+  document.getElementById('ob-card-form').classList.remove('show');
+  document.getElementById('ob-add-card-btn').style.display='';
+}
+function confirmObCard(){
+  const nombre = document.getElementById('ocf-nombre').value.trim();
+  if(!nombre){ document.getElementById('ocf-nombre').focus(); return; }
+  const consumo = tempConsumos.reduce((s,c)=>s+(c.cuotasTotal>0?c.montoTotal/c.cuotasTotal:0),0);
+  obTarjetas.push({
+    nombre,
+    red: document.getElementById('ocf-red').value,
+    limite: parseFloat(document.getElementById('ocf-limite').value)||0,
+    consumos: tempConsumos.map(c=>({...c})),
+    consumo,
+    vencimiento: parseInt(document.getElementById('ocf-venc').value)||20,
+    cierre: parseInt(document.getElementById('ocf-cierre').value)||15,
+  });
+  tempConsumos = [];
+  ['ocf-nombre','ocf-limite','ocf-venc','ocf-cierre'].forEach(id=>document.getElementById(id).value='');
+  cancelObCard();
+  renderObCards();
+}
+
+function renderOcfConsumos(){
+  const list = document.getElementById('ocf-consumo-list');
+  if(!list) return;
+  list.innerHTML = tempConsumos.map((c,i)=>`
+    <div class="ob-consumo-item">
+      <div class="ob-cf-field">
+        <label>Detalle del consumo</label>
+        <input type="text" value="${c.detalle||''}" placeholder="Ej: TV en cuotas"
+          onchange="tempConsumos[${i}].detalle=this.value">
+      </div>
+      <div class="ob-consumo-row">
+        <div class="ob-cf-field">
+          <label>Monto total ($)</label>
+          <input type="number" value="${c.montoTotal||''}" placeholder="0"
+            oninput="tempConsumos[${i}].montoTotal=parseFloat(this.value)||0;ocfUpdateTotal()">
+        </div>
+        <div class="ob-cf-field">
+          <label>Cuotas totales</label>
+          <input type="number" value="${c.cuotasTotal||1}" min="1"
+            oninput="tempConsumos[${i}].cuotasTotal=parseInt(this.value)||1;ocfUpdateTotal()">
+        </div>
+      </div>
+      <div class="ob-consumo-row" style="margin-top:5px">
+        <div class="ob-cf-field">
+          <label>N° de cuota actual</label>
+          <input type="number" value="${c.cuotaActual||1}" min="1"
+            oninput="tempConsumos[${i}].cuotaActual=parseInt(this.value)||1">
+        </div>
+        <div class="ob-cf-field" style="display:flex;align-items:flex-end">
+          <div class="ob-consumo-calc" style="text-align:left">Cuota: $${Math.round(c.cuotasTotal>0?c.montoTotal/c.cuotasTotal:0).toLocaleString('es-AR')} · ${c.cuotaActual||1}/${c.cuotasTotal||1}</div>
+        </div>
+      </div>
+      <div class="ob-consumo-del" onclick="ocfDelConsumo(${i})"><i class="ti ti-trash" style="font-size:11px"></i> Eliminar</div>
+    </div>`).join('');
+  ocfUpdateTotal();
+}
+
+function ocfAddConsumo(){
+  tempConsumos.push({detalle:'', montoTotal:0, cuotasTotal:1, cuotaActual:1});
+  renderOcfConsumos();
+}
+
+function ocfDelConsumo(i){
+  tempConsumos.splice(i,1);
+  renderOcfConsumos();
+}
+
+function ocfUpdateTotal(){
+  const total = tempConsumos.reduce((s,c)=>s+(c.cuotasTotal>0?c.montoTotal/c.cuotasTotal:0),0);
+  const el = document.getElementById('ocf-total-display');
+  if(el) el.textContent = `Total cuotas este mes: $${Math.round(total).toLocaleString('es-AR')}`;
+}
+function obDelCard(i){
+  obTarjetas.splice(i,1);
+  renderObCards();
+}
+// ── Helpers ingreso ─────────────────────────────────
+function actualizarTotalIngreso(){
+  const sueldo = parseFloat(document.getElementById('sueldoInput').value)||0;
+  const otros  = parseFloat(document.getElementById('otrosIngresosInput').value)||0;
+  const total  = sueldo + otros;
+  const el = document.getElementById('ob-total-ingreso');
+  const valEl = document.getElementById('ob-total-ingreso-val');
+  el.style.display = otros > 0 ? 'flex' : 'none';
+  if(valEl) valEl.textContent = '$' + Math.round(total).toLocaleString('es-AR');
+}
+function setIngreso(v){ document.getElementById('sueldoInput').value=v; actualizarTotalIngreso(); }
+function setAlimentos(v){ document.getElementById('ob-alimentos').value=v; }
+
+// ── Finalizar onboarding ─────────────────────────────
+async function obFinish(){
+  const nombre        = document.getElementById('ob-nombre').value.trim();
+  const mesNum        = parseInt(document.getElementById('ob-mes-num').value);
+  const anioCargaSel  = parseInt(document.getElementById('ob-anio').value);
+  const sueldo        = parseFloat(document.getElementById('sueldoInput').value)||0;
+  const otrosIngresos = parseFloat(document.getElementById('otrosIngresosInput').value)||0;
+  const ingresoTotal  = sueldo + otrosIngresos;
+  const alimentos     = parseFloat(document.getElementById('ob-alimentos').value)||0;
+  const ahorroIngresado = parseFloat(document.getElementById('ahorroObInput').value)||0;
+  const whatsapp      = document.getElementById('ob-whatsapp').value.trim();
+  const email         = document.getElementById('ob-email').value.trim();
+  const fechaInicio   = new Date().toISOString().split('T')[0];
+
+  const gastosFijos = obGastos.filter(g=>g.on).map(g=>{
+    const mm = String(mesNum).padStart(2,'0');
+    const dd = String(Math.min(g.dia||15, 28)).padStart(2,'0');
+    const fecha = g.fecha || `${anioCargaSel}-${mm}-${dd}`;
+    return {...g, fecha, dia: parseInt(fecha.split('-')[2])||g.dia};
+  });
+  const totalFijo = gastosFijos.reduce((s,g)=>s+g.monto,0);
+
+  if(ingresoTotal <= 0){ slideToStep(2); shakeinput('sueldoInput'); return; }
+  if(totalFijo + alimentos >= ingresoTotal){
+    if(!confirm('⚠️ Tus gastos fijos superan tu ingreso. ¿Querés continuar igual?')) return;
+  }
+
+  const datos = {
+    nombre, mesNum, anioCarga: anioCargaSel, ingresoTotal,
+    desglose: { sueldo, otrosIngresos },
+    ingreso: ingresoTotal,
+    ahorroMes: ahorroIngresado,
+    alimentos, gastosFijos, tarjetas: obTarjetas,
+    whatsapp, email, fechaInicio
+  };
+
+  try { localStorage.setItem('copiloto_datos', JSON.stringify(datos)); } catch(e){}
+  await sbGuardarDatos(datos);
+
+  iniciarApp(datos);
+  document.getElementById('ob-overlay').classList.add('hidden');
+}
+
+async function resetOnboarding(){
+  if(!confirm('¿Querés reconfigurar tu mes? Se borrarán los datos actuales.')) return;
+  try { localStorage.removeItem('copiloto_datos'); } catch(e){}
+  try { localStorage.removeItem('copiloto_registros'); } catch(e){}
+  try { localStorage.removeItem('copiloto_ultimo_control'); } catch(e){}
+  if(_currentUserId){
+    try {
+      await sb.from('copiloto_datos').delete().eq('user_id', _currentUserId);
+      await sb.from('copiloto_registros').delete().eq('user_id', _currentUserId);
+    } catch(e){}
+  }
+  location.reload();
+}
+
+// ══════════════════════════════════════════════════════
+//  APP PRINCIPAL — Datos & Estado
+// ══════════════════════════════════════════════════════
+const HOY = 13; // día actual
+
+let tarjetas = [];
+let gastosVenc = [];
+let mesNum = 5;
+let ingreso = 0;
+let presupuestoAlimentos = 80000;
+let alimentosUsados = 0;
+let ahorroMes = 0;
+let pagados = new Set();
+let filtroActual = 'todos';
+let anioActual = 2025;
+let anioCarga = 2026;
+let histAbierto = null;
+let gastosExtraDiarios = 0;
+let registrosDiarios = [];
+
+const historial = {
+  2025:[
+    {mes:'May',ingreso:450000,gastos:287100,ahorro:28000,deuda:0,nota:'Mes en curso — datos parciales.'},
+    {mes:'Abr',ingreso:450000,gastos:261400,ahorro:28500,deuda:0,nota:'Buen mes. Sobraron $28.500 que se sumaron al ahorro.'},
+    {mes:'Mar',ingreso:420000,gastos:258000,ahorro:41000,deuda:0,nota:'Aumento de sueldo. Se aprovechó para reforzar el ahorro.'},
+    {mes:'Feb',ingreso:420000,gastos:445000,ahorro:0,deuda:25000,nota:'Gasto imprevisto: arreglo del auto. Deuda descontada en marzo.'},
+    {mes:'Ene',ingreso:420000,gastos:271000,ahorro:19000,deuda:0,nota:'Mes tranquilo. Vacaciones de bajo costo.'},
+  ],
+  2024:[
+    {mes:'Dic',ingreso:380000,gastos:420000,ahorro:0,deuda:40000,nota:'Gastos de fin de año y regalos. Deuda arrastrada a enero.'},
+    {mes:'Nov',ingreso:380000,gastos:295000,ahorro:22000,deuda:0,nota:'Mes estable. Se pagó la cuota del seguro anual.'},
+    {mes:'Oct',ingreso:380000,gastos:280000,ahorro:31000,deuda:0,nota:'Mejor mes del año. Ingreso extra por horas adicionales.'},
+    {mes:'Sep',ingreso:350000,gastos:268000,ahorro:12000,deuda:0,nota:'Aumento de tarifas de servicios. Se ajustó la canasta.'},
+    {mes:'Ago',ingreso:350000,gastos:310000,ahorro:0,deuda:0,nota:'Sin sobrante. Los gastos llegaron justo al límite.'},
+    {mes:'Jul',ingreso:350000,gastos:285000,ahorro:18000,deuda:0,nota:'Mes de invierno con alto consumo de gas.'},
+  ],
+};
+
+// ─── UTILIDADES ─────────────────────────────────────
+function fmt(n){ return '$'+Math.round(n).toLocaleString('es-AR'); }
+function urgencia(diaOrObj){
+  // Si recibe un objeto con fecha completa, comparar contra la fecha real
+  if(typeof diaOrObj === 'object' && diaOrObj !== null && diaOrObj.fecha){
+    const f = new Date(diaOrObj.fecha + 'T00:00:00');
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const diff = Math.round((f - hoy) / 86400000);
+    if(diff < 0) return 'past';
+    if(diff <= 2) return 'crit';
+    if(diff <= 7) return 'urg';
+    return 'ok';
+  }
+  // Fallback: comparar por número de día (tarjetas sin fecha completa, etc.)
+  const dia = typeof diaOrObj === 'object' ? (diaOrObj.dia||0) : diaOrObj;
+  const d = dia - HOY;
+  if(dia < HOY) return 'past';
+  if(d <= 2) return 'crit';
+  if(d <= 7) return 'urg';
+  return 'ok';
+}
+function catLabel(c){ return {vivienda:'Vivienda',servicio:'Servicio',salud:'Salud',tarjeta:'Tarjeta de crédito',educacion:'Educación',otro:'Otro'}[c]||c; }
+function catIco(c){ return {vivienda:'ic-v',servicio:'ic-s',salud:'ic-sa',tarjeta:'ic-t',educacion:'ic-e',otro:'ic-o'}[c]||'ic-o'; }
+function cardColor(pct){ return pct<50?'#2e7d32':pct<75?'#e65100':'#b71c1c'; }
+function weekGroup(dia){
+  if(dia < HOY) return '✓ Ya pagados / vencidos';
+  if(dia === HOY) return 'Hoy — día '+HOY;
+  if(dia <= HOY+7) return 'Esta semana';
+  if(dia <= HOY+14) return 'Próxima semana';
+  return 'Resto del mes';
+}
+
+// ─── INICIAR APP con datos ───────────────────────────
+function iniciarApp(datos){
+  tarjetas = datos.tarjetas || [];
+  gastosVenc = (datos.gastosFijos || []).map((g)=>({...g, id: g.id}));
+  mesNum = datos.mesNum || 1;
+  anioCarga = datos.anioCarga || 2026;
+  ingreso = datos.ingreso || 0;
+  presupuestoAlimentos = datos.alimentos || 0;
+  ahorroMes = datos.ahorroMes || 0;
+
+  // Marcar como pagados los vencimientos anteriores a hoy
+  pagados = new Set();
+  const hoyDate = new Date(); hoyDate.setHours(0,0,0,0);
+  gastosVenc.forEach(g=>{
+    if(g.fecha){
+      if(new Date(g.fecha+'T00:00:00') < hoyDate) pagados.add(g.id);
+    } else if(g.dia < HOY) pagados.add(g.id);
+  });
+
+  // Actualizar historial mes actual
+  const mesLabel = MESES_LABEL[mesNum];
+  const totalGastos = gastosVenc.reduce((s,g)=>s+g.monto,0);
+  if(!historial[anioCarga]) historial[anioCarga] = [];
+  historial[anioCarga][0] = {
+    mes: mesLabel, ingreso, gastos: totalGastos,
+    ahorro: ahorroMes,
+    deuda: 0, nota: 'Mes en curso — datos parciales.'
+  };
+  anioActual = anioCarga;
+
+  // Render UI
+  document.getElementById('venc-titulo').textContent = `Gastos Fijos y Tarjetas — ${MESES_NOMBRE[mesNum]} ${anioCarga}`;
+  renderInicioHeader(datos.nombre);
+  renderCards();
+  renderVencChips();
+  renderReservas();
+  renderRegistrosDiarios();
+  verificarControlTresDias(datos);
+  iniciarReloj();
+
+  // Perfil screen
+  const pn = document.getElementById('perf-nombre');
+  const pw = document.getElementById('perf-whatsapp');
+  const pe = document.getElementById('perf-email');
+  if(pn) pn.textContent = datos.nombre || '—';
+  if(pw) pw.textContent = datos.whatsapp || 'No cargado';
+  if(pe) pe.textContent = datos.email || 'No cargado';
+
+  // Cargar registrosDiarios (ya poblado por cargarDatosDesdeSupabase; fallback a localStorage)
+  if(!registrosDiarios.length){
+    try { registrosDiarios = JSON.parse(localStorage.getItem('copiloto_registros') || '[]'); } catch(e){ registrosDiarios = []; }
+  }
+}
+
+function renderInicioHeader(nombre){
+  document.getElementById('ud-nombre').textContent = nombre;
+
+  // calcular balance libre
+  const totalFijo = gastosVenc.reduce((s,g)=>s+g.monto,0);
+  const totalPagado = gastosVenc.filter(g=>pagados.has(g.id)).reduce((s,g)=>s+g.monto,0);
+  const libre = ingreso - totalFijo - presupuestoAlimentos;
+  const pendiente = totalFijo - totalPagado;
+  const disponible = Math.max(0, libre + totalPagado - alimentosUsados - gastosExtraDiarios);
+  const diasRestantes = 31 - HOY;
+  const diario = diasRestantes > 0 ? Math.round(disponible / diasRestantes) : 0;
+
+  document.getElementById('ud-bal').textContent = fmt(disponible);
+  document.getElementById('ud-balsub').textContent = `De ${fmt(Math.max(0,libre))} libres este mes`;
+  document.getElementById('ud-diario').textContent = fmt(diario)+'/día';
+
+  // semáforo
+  const pct = ingreso > 0 ? totalFijo/ingreso : 0;
+  const sem = document.getElementById('ud-sem');
+  const lbl = document.getElementById('ud-semlabel');
+  const dot = sem.querySelector('.dot');
+  if(pct < .7){ sem.className='sem-pill sem-verde'; lbl.textContent='Salud buena'; dot.style.background='#66bb6a'; }
+  else if(pct < .9){ sem.className='sem-pill sem-amarillo'; lbl.textContent='Gastos ajustados'; dot.style.background='#ffe082'; }
+  else { sem.className='sem-pill sem-rojo'; lbl.textContent='Presupuesto al límite'; dot.style.background='#ef9a9a'; }
+
+  // alimentos
+  const foodPct = presupuestoAlimentos>0?Math.min(100,Math.round(alimentosUsados/presupuestoAlimentos*100)):0;
+  document.getElementById('ud-food-pct').textContent = foodPct+'%';
+  document.getElementById('ud-food-bar').style.width = foodPct+'%';
+  document.getElementById('ud-food-usado').textContent = `Usado: ${fmt(alimentosUsados)}`;
+  document.getElementById('ud-food-total').textContent = `Total: ${fmt(presupuestoAlimentos)}`;
+
+  // frase copiloto
+  let frase = '';
+  if(pct < .6) frase = `¡Excelente, ${nombre}! Tus gastos fijos son bajos. Aprovechá para reforzar el ahorro este mes.`;
+  else if(pct < .8) frase = `Bien, ${nombre}. Tus reservas están cubiertas. Revisá los vencimientos de esta semana para no pagar intereses.`;
+  else frase = `Atención, ${nombre}: tus gastos fijos representan más del 80% del ingreso. Tratá de no generar deuda este mes.`;
+  document.getElementById('ud-phrase').textContent = frase;
+
+  // Mes y año dinámico
+  const mesCapital = MESES_NOMBRE[mesNum].charAt(0).toUpperCase() + MESES_NOMBRE[mesNum].slice(1);
+  const balLabel = document.getElementById('ud-bal-label');
+  if(balLabel) balLabel.textContent = `Disponible hoy — ${mesCapital} ${anioCarga}`;
+  const resMes = document.getElementById('acc-reservas-mes');
+  if(resMes) resMes.textContent = `— ${mesCapital} ${anioCarga}`;
+}
+
+// ─── NAVEGACIÓN ─────────────────────────────────────
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('scr-'+id).classList.add('active');
+  document.getElementById('nav-'+id)?.classList.add('active');
+  document.getElementById('app-scroll').scrollTop = 0;
+  if(id==='venc'){ renderGFyT(); }
+  if(id==='hist'){ renderHistorial(); }
+  if(id==='reg'){ renderRegistrosDiarios(); }
+}
+
+// ─── MODAL ─────────────────────────────────────────
+function abrirModal(){ document.getElementById('modal').classList.add('show'); }
+function cerrarModal(){ document.getElementById('modal').classList.remove('show'); }
+function agregarTarjeta(){
+  const nombre = document.getElementById('m-nombre').value;
+  if(!nombre){ document.getElementById('m-nombre').focus(); return; }
+  tarjetas.push({
+    nombre, red: document.getElementById('m-red').value,
+    cierre: parseInt(document.getElementById('m-cierre').value)||15,
+    vencimiento: parseInt(document.getElementById('m-venc').value)||20,
+    limite: parseFloat(document.getElementById('m-limite').value)||0,
+    consumo: parseFloat(document.getElementById('m-consumo').value)||0,
+  });
+  cerrarModal();
+  ['m-nombre','m-limite','m-consumo'].forEach(id => document.getElementById(id).value='');
+  renderCards(); renderVencChips();
+}
+
+// ─── ACCORDION ──────────────────────────────────────
+function togAcc(id){
+  const body = document.getElementById(id+'-body');
+  const chev = document.getElementById(id+'-chev');
+  const open = body.classList.contains('open');
+  body.classList.toggle('open',!open);
+  chev.classList.toggle('open',!open);
+}
+
+// ─── TARJETAS ───────────────────────────────────────
+function renderCards(){
+  const el = document.getElementById('cards-scroll');
+  if(!tarjetas.length){
+    el.innerHTML = `<div style="padding:4px 0;color:var(--texto3);font-size:12px">Sin tarjetas cargadas.</div>
+      <div class="add-card" onclick="abrirModal()"><i class="ti ti-plus"></i><span>Agregar tarjeta</span></div>`;
+    return;
+  }
+  let html = tarjetas.map((t,i)=>{
+    const pct = t.limite>0?Math.min(100,Math.round(t.consumo/t.limite*100)):0;
+    const col = cardColor(pct);
+    const dv = t.vencimiento - HOY;
+    const dvLabel = dv<=0?`<span class="d-red">Vence hoy/ya</span>`:dv<=3?`<span class="d-red">En ${dv}d</span>`:dv<=7?`<span class="d-warn">En ${dv}d</span>`:`<span class="d-ok">En ${dv}d</span>`;
+    return `<div class="credit-card ${i===0?'sel':''}" onclick="this.parentElement.querySelectorAll('.credit-card').forEach(c=>c.classList.remove('sel'));this.classList.add('sel')">
+      <div class="cc-top"><span class="cc-name">${t.nombre}</span><span class="cc-net">${t.red}</span></div>
+      <div class="cc-amount" style="color:${col}">${fmt(t.consumo)}</div>
+      <div class="cc-limit">de ${fmt(t.limite)} de límite</div>
+      <div class="mini-bar"><div class="mini-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="cc-foot"><span class="cc-venc">${dvLabel}</span><span class="cc-pct" style="color:${col}">${pct}%</span></div>
+    </div>`;
+  }).join('');
+  html += `<div class="add-card" onclick="abrirModal()"><i class="ti ti-plus"></i><span>Agregar tarjeta</span></div>`;
+  el.innerHTML = html;
+}
+
+// ─── CHIPS VENCIMIENTOS (inicio) ────────────────────
+function renderVencChips(){
+  const todos = buildTodos().filter(v=>!pagados.has(v.id)).sort((a,b)=>a.dia-b.dia).slice(0,6);
+  let urgentes = 0;
+  if(!todos.length){
+    document.getElementById('venc-chips').innerHTML=`<div style="padding:8px 0;color:var(--texto3);font-size:12px">Sin vencimientos pendientes.</div>`;
+    document.getElementById('nav-badge').style.display='none';
+    return;
+  }
+  const html = todos.map(v=>{
+    const urg = urgencia(v);
+    if(urg==='crit'||urg==='urg') urgentes++;
+    const dias = v.dia - HOY;
+    const diasStr = urg==='past'?`<span style="color:#999">Venció</span>`:dias===0?`<span class="d-red">Hoy</span>`:urg==='crit'?`<span class="d-red">En ${dias}d</span>`:urg==='urg'?`<span class="d-warn">En ${dias}d</span>`:`<span class="d-ok">En ${dias}d</span>`;
+    return `<div class="venc-chip ${urg==='crit'?'crit':urg==='urg'?'urg':''}">
+      <i class="ti ${v.icono}" style="color:${urg==='crit'?'#9a1a1a':urg==='urg'?'#9a6010':'#5a8a5a'}"></i>
+      <div class="venc-nombre">${v.nombre}</div>
+      <div class="venc-fecha">Día ${v.dia} ${MESES_LABEL[mesNum]}</div>
+      <div class="venc-monto">${fmt(v.monto)}</div>
+      <div class="venc-dias">${diasStr}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('venc-chips').innerHTML = html;
+  const badge = document.getElementById('nav-badge');
+  badge.textContent = urgentes;
+  badge.style.display = urgentes>0?'flex':'none';
+}
+
+// ─── VENCIMIENTOS COMPLETO ──────────────────────────
+function buildTodos(){
+  const tarjVenc = tarjetas.map((t,i)=>{
+    const mm = String(mesNum).padStart(2,'0');
+    const dd = String(Math.min(t.vencimiento||20, 31)).padStart(2,'0');
+    const fecha = `${anioCarga}-${mm}-${dd}`;
+    return {
+      id: 1000+i, nombre:t.nombre+' (tarjeta)', cat:'tarjeta',
+      icono:'ti-credit-card', dia:t.vencimiento, monto:t.consumo, fecha
+    };
+  });
+  return [...gastosVenc, ...tarjVenc].sort((a,b)=>a.dia-b.dia);
+}
+
+function renderVfResumen(){
+  const todos = buildTodos();
+  const total = todos.reduce((s,v)=>s+v.monto,0);
+  const pagadoTotal = todos.filter(v=>pagados.has(v.id)).reduce((s,v)=>s+v.monto,0);
+  const pendiente = total - pagadoTotal;
+  const urgentes = todos.filter(v=>!pagados.has(v.id)&&['crit','urg'].includes(urgencia(v))).length;
+  document.getElementById('vf-resumen-grid').innerHTML = `
+    <div style="background:var(--card);border-radius:11px;padding:10px 11px;border:.5px solid var(--borde)"><div style="font-size:10px;color:var(--texto2)">Total</div><div style="font-size:16px;font-weight:700;color:var(--texto)">${fmt(total)}</div><div style="font-size:9px;color:var(--texto3)">${todos.length} compromisos</div></div>
+    <div style="background:var(--card);border-radius:11px;padding:10px 11px;border:.5px solid var(--borde)"><div style="font-size:10px;color:var(--texto2)">Pendiente</div><div style="font-size:16px;font-weight:700;color:var(--texto)">${fmt(pendiente)}</div><div style="font-size:9px;color:var(--texto3)">${todos.filter(v=>!pagados.has(v.id)).length} sin pagar</div></div>
+    <div style="background:var(--card);border-radius:11px;padding:10px 11px;border:.5px solid var(--borde)"><div style="font-size:10px;color:var(--texto2)">Cancelado</div><div style="font-size:16px;font-weight:700;color:#2a7a2a">${fmt(pagadoTotal)}</div><div style="font-size:9px;color:var(--texto3)">${[...pagados].length} pagos</div></div>
+    <div style="background:var(--card);border-radius:11px;padding:10px 11px;border:.5px solid var(--borde)"><div style="font-size:10px;color:var(--texto2)">Urgentes</div><div style="font-size:16px;font-weight:700;color:${urgentes>0?'#9a2a2a':'#2a7a2a'}">${urgentes}</div><div style="font-size:9px;color:var(--texto3)">en 7 días</div></div>`;
+}
+
+function setFiltro(f, btn){
+  filtroActual = f;
+  document.querySelectorAll('.ff-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderVencFull();
+}
+
+function pagarVenc(id){
+  const row = document.getElementById('vfrow-'+id);
+  const btn = document.getElementById('vfbtn-'+id);
+  if(pagados.has(id)) return;
+  btn.classList.add('done');
+  pagados.add(id);
+  setTimeout(()=>{
+    row.classList.add('hiding');
+    setTimeout(()=>{ row.style.display='none'; renderVfResumen(); renderTotal(); renderVencChips(); }, 430);
+  }, 500);
+}
+
+function renderTotal(){
+  const todos = buildTodos();
+  const pend = todos.filter(v=>!pagados.has(v.id)).reduce((s,v)=>s+v.monto,0);
+  const canc = todos.filter(v=>pagados.has(v.id)).reduce((s,v)=>s+v.monto,0);
+  document.getElementById('vf-total').innerHTML = `
+    <div class="vfr-label"><i class="ti ti-calculator" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Resumen del mes</div>
+    <div class="vfr-right"><div class="vfr-pend">${fmt(pend)} pendiente</div><div class="vfr-paid"><i class="ti ti-circle-check" style="font-size:11px;vertical-align:-1px"></i> ${fmt(canc)} cancelado</div></div>`;
+}
+
+function renderVencFull(){
+  let items = buildTodos().filter(v=>!pagados.has(v.id));
+  if(filtroActual==='urgente') items = items.filter(v=>['crit','urg'].includes(urgencia(v)));
+  else if(filtroActual!=='todos') items = items.filter(v=>v.cat===filtroActual);
+
+  let lastGroup = null, html = '';
+  items.forEach(v=>{
+    const urg = urgencia(v);
+    const esHoy = v.dia===HOY;
+    const grp = weekGroup(v.dia);
+    if(grp!==lastGroup){ html+=`<div class="week-sep-full">${grp}</div>`; lastGroup=grp; }
+    const dias = v.dia - HOY;
+    let badge = '';
+    if(urg==='past') badge=`<span class="dbadge past">Venció día ${v.dia}</span>`;
+    else if(esHoy)   badge=`<span class="dbadge red">Vence hoy</span>`;
+    else if(urg==='crit') badge=`<span class="dbadge red">En ${dias}d</span>`;
+    else if(urg==='urg')  badge=`<span class="dbadge warn">En ${dias}d</span>`;
+    else                  badge=`<span class="dbadge ok">En ${dias}d</span>`;
+    html+=`
+    <div class="venc-full-row ${urg==='crit'?'crit':urg==='urg'?'urg':''}" id="vfrow-${v.id}">
+      <div class="day-bub ${esHoy?'hoy':''}"><span class="dn">${v.dia}</span><span class="dm">${MESES_LABEL[mesNum]}</span></div>
+      <div class="vf-ico ${catIco(v.cat)}"><i class="ti ${v.icono}" style="font-size:15px"></i></div>
+      <div class="vf-info">
+        <div class="vf-name">${v.nombre}</div>
+        <div class="vf-cat">${catLabel(v.cat)}</div>
+      </div>
+      <div class="vf-right"><div class="vf-monto">${fmt(v.monto)}</div>${badge}</div>
+      <button class="cancel-btn" id="vfbtn-${v.id}" onclick="pagarVenc(${v.id})">
+        <div class="check-ring"><i class="ti ti-check"></i></div>
+        <span class="cancel-lbl">Cancelado</span>
+      </button>
+    </div>`;
+  });
+  if(!items.length) html=`<div style="padding:2rem 1rem;text-align:center;color:var(--texto2);font-size:13px"><i class="ti ti-circle-check" style="font-size:30px;display:block;margin-bottom:8px;color:#2a7a2a"></i>¡Todo al día en esta categoría!</div>`;
+  document.getElementById('vf-timeline').innerHTML = html;
+  renderTotal();
+}
+
+// ─── HISTORIAL ──────────────────────────────────────
+function cambiarAnio(d){
+  const n = anioActual + d;
+  if(!historial[n]) return;
+  anioActual = n;
+  document.getElementById('yr-display').textContent = n;
+  histAbierto = null;
+  renderHistorial();
+}
+
+function togHist(idx){
+  const det = document.getElementById('mdet-'+idx);
+  const chev = document.getElementById('mchev-'+idx);
+  if(histAbierto===idx){
+    det.classList.remove('open'); chev.classList.remove('open'); histAbierto=null;
+  } else {
+    if(histAbierto!==null){
+      document.getElementById('mdet-'+histAbierto)?.classList.remove('open');
+      document.getElementById('mchev-'+histAbierto)?.classList.remove('open');
+    }
+    det.classList.add('open'); chev.classList.add('open'); histAbierto=idx;
+  }
+}
+
+function renderHistorial(){
+  const data = historial[anioActual]||[];
+  const tI = data.reduce((s,m)=>s+m.ingreso,0);
+  const tG = data.reduce((s,m)=>s+m.gastos,0);
+  const tA = data.reduce((s,m)=>s+m.ahorro,0);
+  const bal = tI - tG;
+  document.getElementById('hist-anual').innerHTML = `
+    <div class="hist-sum-card"><div class="hs-label">Ingresos ${anioActual}</div><div class="hs-val">${fmt(tI)}</div><div class="hs-sub">${data.length} meses</div></div>
+    <div class="hist-sum-card"><div class="hs-label">Gastos ${anioActual}</div><div class="hs-val" style="color:#9a3a1a">${fmt(tG)}</div><div class="hs-sub">prom. ${fmt(Math.round(tG/data.length))}/mes</div></div>
+    <div class="hist-sum-card"><div class="hs-label">Balance</div><div class="hs-val" style="color:${bal>=0?'#1a7a1a':'#9a1a1a'}">${bal>=0?'+':''}${fmt(bal)}</div><div class="hs-sub">${fmt(tA)} ahorrado</div></div>`;
+
+  let html = '';
+  data.forEach((m,i)=>{
+    const res = m.ingreso - m.gastos;
+    const pct = Math.min(100, Math.round(m.gastos/m.ingreso*100));
+    const col = pct<85?'#2e7d32':pct<100?'#e65100':'#b71c1c';
+    const dot = pct<85?'#66bb6a':pct<100?'#ffca28':'#ef5350';
+    const esCurso = i===0 && anioActual===anioCarga;
+    html+=`
+    <div class="month-card">
+      <div class="mc-head" onclick="togHist(${i})">
+        <div class="mc-circle"><span>${m.mes}</span><span>${anioActual}</span></div>
+        <div class="mc-info">
+          <div class="mc-title">
+            <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${dot};flex-shrink:0"></span>
+            ${m.mes} ${anioActual}
+            ${esCurso?'<span class="curso-tag">en curso</span>':''}
+          </div>
+          <div class="mc-sub">Ingreso ${fmt(m.ingreso)} · Gasto ${fmt(m.gastos)}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="${res>=0?'mc-result-pos':'mc-result-neg'}">${res>=0?'+':''}${fmt(res)}</div>
+          <div class="mc-result-label">${res>=0?'sobrante':'déficit'}</div>
+        </div>
+        <i class="ti ti-chevron-down mc-chev" id="mchev-${i}"></i>
+      </div>
+      <div class="mc-detail" id="mdet-${i}">
+        <div class="mc-detail-inner">
+          <div class="mc-grid">
+            <div class="mc-item"><div class="mc-item-label">Ingreso</div><div class="mc-item-val">${fmt(m.ingreso)}</div></div>
+            <div class="mc-item"><div class="mc-item-label">Gastos</div><div class="mc-item-val" style="color:#9a3a1a">${fmt(m.gastos)}</div></div>
+            <div class="mc-item"><div class="mc-item-label">Ahorro sumado</div><div class="mc-item-val" style="color:#1a7a1a">${m.ahorro>0?'+'+fmt(m.ahorro):'—'}</div></div>
+            <div class="mc-item"><div class="mc-item-label">Deuda generada</div><div class="mc-item-val" style="color:${m.deuda>0?'#9a1a1a':'#999'}">${m.deuda>0?fmt(m.deuda):'Ninguna'}</div></div>
+          </div>
+          <div class="mc-bar-label">% del ingreso usado en gastos</div>
+          <div class="mc-bar-track"><div class="mc-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+          <div class="mc-bar-leg"><span>0%</span><span style="font-weight:700;color:${col}">${pct}%</span><span>100%</span></div>
+          <div class="mc-nota"><i class="ti ti-message-circle" style="font-size:12px;vertical-align:-2px;margin-right:4px"></i>${m.nota}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('hist-months').innerHTML = html + '<div style="height:10px"></div>';
+}
+
+// ─── RESERVAS (accordion) ────────────────────────────
+function renderReservas(){
+  // Las reservas las calculamos del total de gastos fijos por categoría
+  const cats = {};
+  gastosVenc.forEach(g=>{
+    if(!cats[g.cat]) cats[g.cat]={total:0,label:catLabel(g.cat)};
+    cats[g.cat].total += g.monto;
+  });
+  const fijosTotal = gastosVenc.reduce((s,g)=>s+g.monto,0);
+  // ↓ Actualiza el total dinámico junto al título del acordeón
+  const totalAccEl = document.getElementById('acc-reservas-total');
+  if(totalAccEl) totalAccEl.textContent = fmt(fijosTotal);
+  const rows = Object.values(cats).map(c=>({n:c.label, m:c.total, e:'ok'}));
+
+  document.getElementById('reservas-list').innerHTML = rows.length
+    ? rows.map(r=>`<div class="res-row"><span class="res-name">${r.n}</span>
+      <div class="res-right"><span class="res-amount">${fmt(r.m)}</span>
+      <span class="badge ${r.e==='ok'?'b-ok':'b-warn'}">${r.e==='ok'?'OK':'Revisar'}</span></div></div>`
+    ).join('')
+    : '<div style="font-size:12px;color:var(--texto3);padding:8px 0">Sin gastos configurados.</div>';
+
+  const mesCapAhorro = MESES_NOMBRE[mesNum].charAt(0).toUpperCase() + MESES_NOMBRE[mesNum].slice(1);
+  const resumenEl = document.getElementById('acc-ahorro-resumen');
+  if(resumenEl) resumenEl.textContent = `${fmt(ahorroMes)} — ${mesCapAhorro}`;
+
+  document.getElementById('ahorro-detail').innerHTML = `
+    <div style="text-align:center;padding:11px 0 8px">
+      <div style="font-size:26px;font-weight:700;color:${ahorroMes>=0?'#1a4a1a':'#9a1a1a'}">${ahorroMes>=0?'':'-'}${fmt(Math.abs(ahorroMes))}</div>
+      <div style="font-size:11px;color:var(--texto2);margin-top:2px">Ahorro estimado — ${mesCapAhorro} ${anioCarga}</div>
+    </div>
+    <div style="border-top:.5px solid var(--borde)">
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid var(--borde)"><span style="font-size:11px;color:var(--texto2)">Abril 2025</span><span style="font-size:11px;font-weight:700;color:#2a7a2a">+ $28.500</span></div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid var(--borde)"><span style="font-size:11px;color:var(--texto2)">Marzo 2025</span><span style="font-size:11px;font-weight:700;color:#2a7a2a">+ $41.000</span></div>
+      <div style="display:flex;justify-content:space-between;padding:7px 0"><span style="font-size:11px;color:var(--texto2)">Febrero 2025</span><span style="font-size:11px;font-weight:700;color:#9a2a2a">− $12.000</span></div>
+    </div>`;
+}
+
+// ─── GASTOS FIJOS Y TARJETAS ─────────────────────────
+function renderGFyT(){
+
+  /* ── 1. Gastos fijos ── */
+  const listFijos = document.getElementById('gft-fijos-list');
+  if(!gastosVenc.length){
+    listFijos.innerHTML = '<div style="padding:1rem 14px;color:var(--texto3);font-size:12px;text-align:center"><i class="ti ti-circle-check" style="font-size:24px;display:block;margin-bottom:6px;color:#2a7a2a"></i>Sin gastos fijos configurados.</div>';
+  } else {
+    listFijos.innerHTML = gastosVenc
+      .slice()
+      .sort((a,b)=>a.dia-b.dia)
+      .map(g=>{
+        const urg = urgencia(g);
+        // Armar etiqueta de fecha
+        let fechaLabel;
+        if(g.fecha){
+          const partes = g.fecha.split('-');
+          fechaLabel = `${parseInt(partes[2])} de ${MESES_NOMBRE[mesNum]}`;
+        } else {
+          fechaLabel = `Día ${g.dia} de ${MESES_NOMBRE[mesNum]}`;
+        }
+        const urgBorder = urg==='crit' ? 'border-color:#e8a0a0;background:#fff5f5'
+                        : urg==='urg'  ? 'border-color:#e8c870;background:#fffcf0'
+                        : '';
+        const urgDateColor = urg==='crit' ? 'color:#9a1a1a'
+                           : urg==='urg'  ? 'color:#9a6010'
+                           : '';
+        return `<div class="gft-fijo-row" style="${urgBorder}">
+          <div class="gft-fijo-ico ${catIco(g.cat)}">
+            <i class="ti ${g.icono}" style="font-size:15px"></i>
+          </div>
+          <div class="gft-fijo-info">
+            <div class="gft-fijo-nombre">${g.nombre}</div>
+            <div class="gft-fijo-fecha" style="${urgDateColor}">
+              <i class="ti ti-calendar-event" style="font-size:10px;vertical-align:-1px;margin-right:3px"></i>${fechaLabel}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+            <div class="gft-fijo-monto">${fmt(g.monto)}</div>
+            ${pagados.has(g.id)
+              ? `<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;background:#e8f5e8;color:#1a7a1a">✓ Pagado</span>`
+              : `<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;background:#ffe8e8;color:#9a1a1a">Pendiente</span>`
+            }
+            <button class="gft-edit-btn" onclick="abrirEditarGasto('${g.id}')">
+              <i class="ti ti-pencil"></i>Editar
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+  }
+
+  /* ── 2. Tarjetas ── */
+  const listTarj = document.getElementById('gft-tarjetas-list');
+  if(!tarjetas.length){
+    listTarj.innerHTML = '<div style="padding:1rem 14px;color:var(--texto3);font-size:12px;text-align:center"><i class="ti ti-credit-card-off" style="font-size:24px;display:block;margin-bottom:6px"></i>Sin tarjetas configuradas.</div>';
+    return;
+  }
+
+  // Calcula el mes/año del próximo vencimiento (mes siguiente)
+  const mesVencNum  = mesNum === 12 ? 1 : mesNum + 1;
+  const anioVencNum = mesNum === 12 ? anioCarga + 1 : anioCarga;
+
+  listTarj.innerHTML = tarjetas.map((t, i)=>{
+    const ddCierre = String(Math.min(t.cierre || 15, 28)).padStart(2,'0');
+    const ddVenc   = String(Math.min(t.vencimiento || 20, 31)).padStart(2,'0');
+    const mmActual = String(mesNum).padStart(2,'0');
+    const mmVenc   = String(mesVencNum).padStart(2,'0');
+
+    const fechaCierre = `${ddCierre}/${mmActual}/${anioCarga}`;
+    const fechaVenc   = `${ddVenc}/${mmVenc}/${anioVencNum}`;
+
+    const consumoTotal = t.consumo || 0;
+    const consumos     = t.consumos || [];
+
+    /* Detalle de consumos */
+    let detHtml = '';
+    if(!consumos.length){
+      detHtml = `<div style="font-size:12px;color:var(--texto3);padding:6px 0;text-align:center">
+        <i class="ti ti-info-circle" style="font-size:18px;display:block;margin-bottom:4px"></i>
+        Sin consumos detallados cargados.
+      </div>`;
+    } else {
+      detHtml = consumos.map(c=>{
+        const cuotaActual = c.cuotaActual || 1;
+        const cuotasTotal = c.cuotasTotal || 1;
+        const montoCuota  = cuotasTotal > 0 ? Math.round(c.montoTotal / cuotasTotal) : 0;
+
+        // Formato: "X cuota de Y (X/Y)" ó "Pago único" si cuotasTotal === 1
+        const cuotaLabel = cuotasTotal === 1
+          ? `<span class="gft-consumo-badge">Pago único</span>`
+          : `<span class="gft-consumo-badge">${cuotaActual} cuota de ${cuotasTotal} (${cuotaActual}/${cuotasTotal})</span>`;
+
+        return `<div class="gft-consumo-item">
+          <div class="gft-consumo-nombre">${c.detalle || 'Consumo sin nombre'}</div>
+          <div class="gft-consumo-row">
+            <div>
+              <div class="gft-consumo-meta">Total compra: ${fmt(c.montoTotal)}</div>
+              ${cuotaLabel}
+            </div>
+            <div style="text-align:right">
+              <div class="gft-consumo-monto-mes">${fmt(montoCuota)}</div>
+              <div class="gft-consumo-monto-label">esta cuota</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    return `<div class="gft-tarjeta-card">
+      <div class="gft-tarjeta-head">
+        <div class="gft-tarjeta-ico"><i class="ti ti-credit-card"></i></div>
+        <div class="gft-tarjeta-info">
+          <div class="gft-tarjeta-name">${t.nombre}
+            <span style="font-size:10px;color:var(--texto3);font-weight:400">${t.red}</span>
+          </div>
+          <div class="gft-tarjeta-meta">
+            <i class="ti ti-lock" style="font-size:10px;vertical-align:-1px"></i> Cierra: <b>${fechaCierre}</b><br>
+            <i class="ti ti-calendar-due" style="font-size:10px;vertical-align:-1px"></i> Vence: <b>${fechaVenc}</b>
+          </div>
+        </div>
+        <div class="gft-tarjeta-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          <div class="gft-tarjeta-monto">${fmt(consumoTotal)}</div>
+          <div class="gft-tarjeta-monto-label">consumo del mes</div>
+          <button class="gft-edit-btn" onclick="abrirEditarTarjeta(${i})">
+            <i class="ti ti-pencil"></i>Editar
+          </button>
+        </div>
+      </div>
+      <div class="gft-ver-det" onclick="togGftDet(${i})">
+        <span class="gft-ver-det-label">
+          <i class="ti ti-list-details" style="font-size:12px"></i>Ver detalle de consumos
+        </span>
+        <i class="ti ti-chevron-down gft-ver-det-chev" id="gft-chev-${i}"></i>
+      </div>
+      <div class="gft-det-body" id="gft-det-${i}">
+        <div class="gft-det-inner">${detHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togGftDet(i){
+  const body = document.getElementById('gft-det-'+i);
+  const chev = document.getElementById('gft-chev-'+i);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+// ─── HELPER: Persistir gastos y tarjetas ────────────────────
+async function guardarDatosApp(){
+  try {
+    const datos = JSON.parse(localStorage.getItem('copiloto_datos') || '{}');
+    datos.gastosFijos = gastosVenc;
+    datos.tarjetas    = tarjetas;
+    localStorage.setItem('copiloto_datos', JSON.stringify(datos));
+    await sbGuardarDatos(datos);
+  } catch(e){}
+}
+
+// ─── EDITAR GASTO FIJO ───────────────────────────────────────
+let _editGastoId = null;
+
+function abrirEditarGasto(id){
+  const g = gastosVenc.find(x => String(x.id) === String(id));
+  if(!g) return;
+  _editGastoId = id;
+
+  // Fecha: el campo date espera YYYY-MM-DD
+  const fechaVal = g.fecha
+    ? g.fecha
+    : `${anioCarga}-${String(mesNum).padStart(2,'0')}-${String(g.dia||1).padStart(2,'0')}`;
+
+  document.getElementById('eg-nombre').textContent  = g.nombre;
+  document.getElementById('eg-fecha').value         = fechaVal;
+  document.getElementById('eg-monto').value         = g.monto || '';
+  document.getElementById('modal-edit-gasto').classList.add('show');
+}
+
+function cerrarEditarGasto(){
+  document.getElementById('modal-edit-gasto').classList.remove('show');
+  _editGastoId = null;
+}
+
+function guardarEditarGasto(){
+  const g = gastosVenc.find(x => String(x.id) === String(_editGastoId));
+  if(!g){ cerrarEditarGasto(); return; }
+
+  const nuevaFecha = document.getElementById('eg-fecha').value;   // YYYY-MM-DD
+  const nuevoMonto = parseFloat(document.getElementById('eg-monto').value) || 0;
+
+  if(!nuevaFecha){ document.getElementById('eg-fecha').focus(); return; }
+  if(nuevoMonto <= 0){ document.getElementById('eg-monto').focus(); return; }
+
+  g.fecha = nuevaFecha;
+  g.dia   = parseInt(nuevaFecha.split('-')[2]) || g.dia;
+  g.monto = nuevoMonto;
+
+  guardarDatosApp();
+  renderGFyT();
+  renderVencFull();
+  renderVencChips();
+  renderReservas();
+  renderInicioHeader(document.getElementById('ud-nombre').textContent);
+  cerrarEditarGasto();
+}
+
+// ─── EDITAR TARJETA ──────────────────────────────────────────
+let _editTarjIdx = null;
+
+function abrirEditarTarjeta(index){
+  const t = tarjetas[index];
+  if(!t) return;
+  _editTarjIdx = index;
+
+  document.getElementById('et-nombre').textContent = `${t.nombre} (${t.red})`;
+  document.getElementById('et-cierre').value       = t.cierre   || 15;
+  document.getElementById('et-venc').value         = t.vencimiento || 20;
+
+  // Generar filas de consumos dinámicamente
+  const consumos = t.consumos || [];
+  const wrap = document.getElementById('et-consumos-wrap');
+  if(!consumos.length){
+    wrap.innerHTML = `<div style="font-size:12px;color:var(--texto3);text-align:center;padding:8px 0">
+      <i class="ti ti-info-circle" style="font-size:16px;display:block;margin-bottom:4px"></i>
+      Sin consumos cargados para esta tarjeta.
+    </div>`;
+  } else {
+    wrap.innerHTML = consumos.map((c, ci) => `
+      <div class="mec-row">
+        <div class="mec-row-title">
+          <i class="ti ti-shopping-bag"></i>Consumo ${ci + 1}
+        </div>
+        <div class="mf" style="margin-bottom:7px">
+          <label>Detalle</label>
+          <input type="text" id="et-c-det-${ci}" value="${c.detalle || ''}" placeholder="Descripción del consumo">
+        </div>
+        <div class="mec-grid3">
+          <div class="mf" style="margin-bottom:0">
+            <label>Monto total</label>
+            <input type="number" id="et-c-monto-${ci}" value="${c.montoTotal || 0}" min="0" step="100">
+          </div>
+          <div class="mf" style="margin-bottom:0">
+            <label>Cuotas</label>
+            <input type="number" id="et-c-cuotas-${ci}" value="${c.cuotasTotal || 1}" min="1" max="60">
+          </div>
+          <div class="mf" style="margin-bottom:0">
+            <label>Cuota N°</label>
+            <input type="number" id="et-c-actual-${ci}" value="${c.cuotaActual || 1}" min="1" max="60">
+          </div>
+        </div>
+      </div>`).join('');
+  }
+
+  document.getElementById('modal-edit-tarjeta').classList.add('show');
+}
+
+function cerrarEditarTarjeta(){
+  document.getElementById('modal-edit-tarjeta').classList.remove('show');
+  _editTarjIdx = null;
+}
+
+function guardarEditarTarjeta(){
+  const t = tarjetas[_editTarjIdx];
+  if(!t){ cerrarEditarTarjeta(); return; }
+
+  // Actualizar fechas de tarjeta
+  const nuevoCierre = parseInt(document.getElementById('et-cierre').value) || 15;
+  const nuevoVenc   = parseInt(document.getElementById('et-venc').value)   || 20;
+  t.cierre      = Math.min(Math.max(nuevoCierre, 1), 28);
+  t.vencimiento = Math.min(Math.max(nuevoVenc,   1), 31);
+
+  // Actualizar consumos si existen
+  const consumos = t.consumos || [];
+  consumos.forEach((c, ci) => {
+    const detEl    = document.getElementById(`et-c-det-${ci}`);
+    const montoEl  = document.getElementById(`et-c-monto-${ci}`);
+    const cuotasEl = document.getElementById(`et-c-cuotas-${ci}`);
+    const actualEl = document.getElementById(`et-c-actual-${ci}`);
+    if(!detEl) return;
+
+    c.detalle     = detEl.value.trim()               || c.detalle;
+    c.montoTotal  = parseFloat(montoEl.value)         || c.montoTotal;
+    c.cuotasTotal = parseInt(cuotasEl.value)          || c.cuotasTotal;
+    c.cuotaActual = parseInt(actualEl.value)          || c.cuotaActual;
+    // Clamp cuotaActual
+    c.cuotaActual = Math.min(c.cuotaActual, c.cuotasTotal);
+  });
+
+  // Recalcular consumo mensual total (suma de cuota vigente de cada consumo)
+  t.consumo = consumos.reduce((sum, c) => {
+    const cuota = c.cuotasTotal > 0 ? Math.round(c.montoTotal / c.cuotasTotal) : 0;
+    return sum + cuota;
+  }, 0);
+  t.consumos = consumos;
+
+  guardarDatosApp();
+  renderGFyT();
+  renderCards();
+  renderVencChips();
+  renderInicioHeader(document.getElementById('ud-nombre').textContent);
+  cerrarEditarTarjeta();
+}
+
+// ── CSS animación shake ──────────────────────────────
+const styleEl = document.createElement('style');
+styleEl.textContent = `@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}`;
+document.head.appendChild(styleEl);
+
+
+// ─── RELOJ ARG ──────────────────────────────────────
+function iniciarReloj(){
+  const tz = 'America/Argentina/Buenos_Aires';
+  function tick(){
+    const now = new Date();
+    const hora = now.toLocaleTimeString('es-AR', {timeZone:tz, hour:'2-digit', minute:'2-digit', hour12:false});
+    const fecha = now.toLocaleDateString('es-AR', {timeZone:tz, day:'2-digit', month:'2-digit'});
+    const el = document.getElementById('app-clock');
+    if(el) el.textContent = hora + ' · ' + fecha;
+  }
+  tick();
+  const ahora = new Date();
+  const msHastaMinuto = (60 - ahora.getSeconds()) * 1000 - ahora.getMilliseconds();
+  setTimeout(()=>{ tick(); setInterval(tick, 60000); }, msHastaMinuto);
+}
+
+// ─── CONTROL DE 3 DÍAS ───────────────────────────────
+function verificarControlTresDias(datos){
+  if(!datos || !datos.fechaInicio) return;
+  const tz = 'America/Argentina/Buenos_Aires';
+  const hoyStr = new Date().toLocaleDateString('sv-SE', {timeZone: tz});
+  const inicio = new Date(datos.fechaInicio + 'T00:00:00');
+  const hoy    = new Date(hoyStr + 'T00:00:00');
+  const diffDias = Math.round((hoy - inicio) / 86400000);
+  if(diffDias > 0 && diffDias % 3 === 0){
+    // El ultimoControl ya fue sincronizado desde Supabase al cargar la sesión
+    const ultimoControl = localStorage.getItem('copiloto_ultimo_control');
+    if(ultimoControl !== hoyStr){
+      setTimeout(()=> abrirControl3d(), 800);
+    }
+  }
+}
+
+function abrirControl3d(){
+  const sel = document.getElementById('c3d-tarjeta-sel');
+  if(sel){
+    sel.innerHTML = tarjetas.map((t,i)=>`<option value="${i}">${t.nombre} (${t.red})</option>`).join('') || '<option disabled>Sin tarjetas cargadas</option>';
+  }
+  document.getElementById('modal-control3d').classList.add('show');
+}
+
+function cerrarControl3d(){
+  document.getElementById('modal-control3d').classList.remove('show');
+}
+
+function togGastoPersonalizado(){
+  const sel = document.getElementById('c3d-cat-sel').value;
+  const inputWrap = document.getElementById('c3d-concepto-custom-wrap');
+  if(inputWrap) inputWrap.style.display = sel === 'GASTOS PERSONALIZADOS' ? 'block' : 'none';
+}
+
+async function guardarControl3d(){
+  const tz = 'America/Argentina/Buenos_Aires';
+  const hoyStr = new Date().toLocaleDateString('sv-SE', {timeZone: tz});
+  const catSel = document.getElementById('c3d-cat-sel').value;
+  const conceptoCustom = document.getElementById('c3d-concepto-custom')?.value.trim() || '';
+  const categoria = catSel === 'GASTOS PERSONALIZADOS' ? (conceptoCustom || 'Personalizado') : catSel;
+  const montoGasto = parseFloat(document.getElementById('c3d-monto-gasto').value) || 0;
+  const montoAlimentos = parseFloat(document.getElementById('c3d-monto-alimentos').value) || 0;
+  const tarjIdx = parseInt(document.getElementById('c3d-tarjeta-sel').value);
+  const concepto = document.getElementById('c3d-concepto-tarj').value.trim();
+  const montoTarj = parseFloat(document.getElementById('c3d-monto-tarj').value) || 0;
+  const cuotas = parseInt(document.getElementById('c3d-cuotas').value) || 1;
+
+  // 1. Gastos diarios
+  if(montoGasto > 0) gastosExtraDiarios += montoGasto;
+
+  // 2. Alimentos
+  if(montoAlimentos > 0) alimentosUsados += montoAlimentos;
+
+  // 3. Tarjeta
+  let tarjDatos = null;
+  if(!isNaN(tarjIdx) && tarjetas[tarjIdx] && montoTarj > 0 && concepto){
+    const t = tarjetas[tarjIdx];
+    const valorCuota = Math.round(montoTarj / cuotas);
+    if(!t.consumos) t.consumos = [];
+    t.consumos.push({ detalle: concepto, montoTotal: montoTarj, cuotasTotal: cuotas, cuotaActual: 1 });
+    t.consumo = (t.consumo || 0) + valorCuota;
+    tarjDatos = { tarjeta: t.nombre, concepto, montoTotal: montoTarj, cuotas, valorCuota };
+  }
+
+  // 4. Registrar
+  const registro = {
+    fecha: hoyStr,
+    gastoExtra: { categoria, monto: montoGasto },
+    gastoAlimentos: montoAlimentos,
+    gastoTarjeta: tarjDatos
+  };
+  registrosDiarios.push(registro);
+  try {
+    localStorage.setItem('copiloto_registros', JSON.stringify(registrosDiarios));
+    localStorage.setItem('copiloto_ultimo_control', hoyStr);
+  } catch(e){}
+  await sbGuardarRegistros(registrosDiarios);
+  await sbGuardarUltimoControl(hoyStr);
+
+  // 5. Actualizar UI
+  renderInicioHeader(document.getElementById('ud-nombre').textContent);
+  renderRegistrosDiarios();
+  renderCards();
+  cerrarControl3d();
+}
+
+// ─── REGISTROS DIARIOS ───────────────────────────────
+function renderRegistrosDiarios(){
+  const list = document.getElementById('acc-registros-inner');
+  if(!list) return;
+  if(!registrosDiarios.length){
+    list.innerHTML = `<div style="padding:8px 0;color:var(--texto3);font-size:12px;text-align:center">Sin registros cargados aún.</div>`;
+    return;
+  }
+  const sorted = [...registrosDiarios].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  list.innerHTML = sorted.map((r,i)=>{
+    const partes = r.fecha.split('-');
+    const fechaLabel = `${partes[2]}/${partes[1]}/${partes[0]}`;
+    const detalles = [];
+    if(r.gastoExtra && r.gastoExtra.monto > 0)
+      detalles.push(`<div class="res-row"><span class="res-name"><i class="ti ti-shopping-cart" style="font-size:11px;vertical-align:-1px;margin-right:4px"></i>Gasto — ${r.gastoExtra.categoria}</span><span class="res-amount">${fmt(r.gastoExtra.monto)}</span></div>`);
+    if(r.gastoAlimentos > 0)
+      detalles.push(`<div class="res-row"><span class="res-name"><i class="ti ti-basket" style="font-size:11px;vertical-align:-1px;margin-right:4px"></i>Alimentos</span><span class="res-amount">${fmt(r.gastoAlimentos)}</span></div>`);
+    if(r.gastoTarjeta)
+      detalles.push(`<div class="res-row"><span class="res-name"><i class="ti ti-credit-card" style="font-size:11px;vertical-align:-1px;margin-right:4px"></i>${r.gastoTarjeta.concepto} (${r.gastoTarjeta.tarjeta})</span><span class="res-amount">${fmt(r.gastoTarjeta.valorCuota)}/mes</span></div>`);
+    return `
+      <div class="acc" style="margin:0 0 7px;border-radius:11px;overflow:hidden;background:var(--card);border:1px solid var(--borde)">
+        <div class="acc-head" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.acc-chev').classList.toggle('open')">
+          <span class="acc-head-title"><i class="ti ti-calendar-event" style="font-size:14px;color:#5a8a5a"></i>&nbsp;${fechaLabel}</span>
+          <i class="ti ti-chevron-down acc-chev"></i>
+        </div>
+        <div class="acc-body">
+          <div class="acc-inner">${detalles.join('') || '<div style="font-size:12px;color:var(--texto3)">Sin detalle.</div>'}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ─── INIT ────────────────────────────────────────────
+initStepsBar();
+renderObGastos(); // paso 3 pre-renderizado
+
+// Verificar sesión Supabase al cargar
+(async () => {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if(session){
+      _currentUserId = session.user.id;
+      mostrarEmailUsuario(session.user.email);
+      await cargarDatosDesdeSupabase();
+      ocultarAuthOverlay();
+    } else {
+      // Sin sesión → mostrar pantalla de login
+      mostrarAuthOverlay();
+    }
+  } catch(e){
+    // Si Supabase falla (ej. URL no configurada aún), fallback a localStorage
+    console.warn('Supabase no disponible, usando localStorage:', e.message);
+    mostrarAuthOverlay();
+  }
+})();
+</script>
+<!-- ═══ MODAL EDITAR GASTO FIJO ═══════════════════════════ -->
+<div class="modal-overlay" id="modal-edit-gasto">
+  <div class="modal">
+    <div class="modal-title">
+      <span><i class="ti ti-pencil" style="font-size:14px;vertical-align:-2px;margin-right:6px;color:#5a8a5a"></i>Editar Gasto Fijo</span>
+      <span class="modal-close" onclick="cerrarEditarGasto()"><i class="ti ti-x"></i></span>
+    </div>
+
+    <!-- Nombre (solo lectura, referencia) -->
+    <div style="background:#f0f8f0;border-radius:9px;padding:8px 11px;margin-bottom:12px;border:1px solid #b8d8b8">
+      <div style="font-size:10px;color:#4a7a4a;margin-bottom:1px">Gasto</div>
+      <div id="eg-nombre" style="font-size:13px;font-weight:700;color:var(--texto)"></div>
+    </div>
+
+    <div class="mf">
+      <label>Fecha de vencimiento</label>
+      <input type="date" id="eg-fecha">
+    </div>
+    <div class="mf">
+      <label>Monto ($)</label>
+      <input type="number" id="eg-monto" placeholder="0" min="0" step="100">
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button onclick="cerrarEditarGasto()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--borde2);background:transparent;font-size:13px;color:var(--texto2);cursor:pointer">Cancelar</button>
+      <button class="btn-add" style="flex:2" onclick="guardarEditarGasto()">
+        <i class="ti ti-device-floppy" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL EDITAR TARJETA ══════════════════════════════ -->
+<div class="modal-overlay" id="modal-edit-tarjeta">
+  <div class="modal" style="width:340px;max-height:90vh;overflow-y:auto">
+    <div class="modal-title" style="position:sticky;top:0;background:var(--card);padding-bottom:10px;z-index:1">
+      <span><i class="ti ti-credit-card" style="font-size:14px;vertical-align:-2px;margin-right:6px;color:#5a8a5a"></i>Editar Tarjeta</span>
+      <span class="modal-close" onclick="cerrarEditarTarjeta()"><i class="ti ti-x"></i></span>
+    </div>
+
+    <!-- Nombre (solo lectura) -->
+    <div style="background:#f0f8f0;border-radius:9px;padding:8px 11px;margin-bottom:12px;border:1px solid #b8d8b8">
+      <div style="font-size:10px;color:#4a7a4a;margin-bottom:1px">Tarjeta</div>
+      <div id="et-nombre" style="font-size:13px;font-weight:700;color:var(--texto)"></div>
+    </div>
+
+    <!-- Fechas de tarjeta -->
+    <div style="font-size:11px;font-weight:700;color:#3a5a3a;margin-bottom:8px;display:flex;align-items:center;gap:5px">
+      <i class="ti ti-calendar-stats" style="font-size:13px;color:#5a8a5a"></i>Fechas del ciclo
+    </div>
+    <div class="mg" style="margin-bottom:12px">
+      <div class="mf" style="margin:0">
+        <label><i class="ti ti-lock" style="font-size:10px;vertical-align:-1px"></i> Día de cierre</label>
+        <input type="number" id="et-cierre" min="1" max="28" placeholder="15">
+      </div>
+      <div class="mf" style="margin:0">
+        <label><i class="ti ti-calendar-due" style="font-size:10px;vertical-align:-1px"></i> Día de vencimiento</label>
+        <input type="number" id="et-venc" min="1" max="31" placeholder="20">
+      </div>
+    </div>
+
+    <!-- Consumos -->
+    <div style="font-size:11px;font-weight:700;color:#3a5a3a;margin-bottom:8px;display:flex;align-items:center;gap:5px">
+      <i class="ti ti-list-details" style="font-size:13px;color:#5a8a5a"></i>Consumos del mes
+    </div>
+    <div id="et-consumos-wrap"></div>
+
+    <div style="display:flex;gap:8px;margin-top:8px;position:sticky;bottom:0;background:var(--card);padding-top:8px">
+      <button onclick="cerrarEditarTarjeta()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--borde2);background:transparent;font-size:13px;color:var(--texto2);cursor:pointer">Cancelar</button>
+      <button class="btn-add" style="flex:2" onclick="guardarEditarTarjeta()">
+        <i class="ti ti-device-floppy" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
