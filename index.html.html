@@ -2786,22 +2786,44 @@ function renderRegistrosDiarios(){
 initStepsBar();
 renderObGastos(); // paso 3 pre-renderizado
 
-// Verificar sesión Supabase al cargar
+// ─── VERIFICAR SESIÓN SUPABASE AL CARGAR ────────────
+// 1. Listener permanente: captura confirmación de email (hash en URL)
+//    y cualquier cambio de estado de autenticación en tiempo real.
+sb.auth.onAuthStateChange(async (event, session) => {
+  if(event === 'SIGNED_IN' && session){
+    // Evitar doble ejecución si getSession() ya inició la app
+    if(_currentUserId) return;
+    _currentUserId = session.user.id;
+    mostrarEmailUsuario(session.user.email);
+    await cargarDatosDesdeSupabase();
+    ocultarAuthOverlay();
+  }
+  if(event === 'SIGNED_OUT'){
+    _currentUserId = null;
+    mostrarAuthOverlay();
+  }
+});
+
+// 2. Verificación inicial: para usuarios que ya tenían sesión activa
+//    (vuelven a la app días después con token guardado en el browser).
 (async () => {
   try {
     const { data: { session } } = await sb.auth.getSession();
     if(session){
+      // Sesión activa encontrada → entrar directamente
       _currentUserId = session.user.id;
       mostrarEmailUsuario(session.user.email);
       await cargarDatosDesdeSupabase();
       ocultarAuthOverlay();
     } else {
-      // Sin sesión → mostrar pantalla de login
+      // Sin sesión todavía → mostrar pantalla de login.
+      // Si el usuario viene del link de confirmación de email,
+      // onAuthStateChange se disparará automáticamente en unos ms.
       mostrarAuthOverlay();
     }
   } catch(e){
-    // Si Supabase falla (ej. URL no configurada aún), fallback a localStorage
-    console.warn('Supabase no disponible, usando localStorage:', e.message);
+    // Si Supabase no está disponible, mostrar pantalla de login
+    console.warn('Supabase no disponible:', e.message);
     mostrarAuthOverlay();
   }
 })();
