@@ -1120,7 +1120,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="acc" id="acc-reservas">
         <div class="acc-head" onclick="togAcc('acc-reservas')">
           <span class="acc-head-title">
-  <i class="ti ti-shield-lock"></i>Gastos Fijos / Reservas
+  <i class="ti ti-shield-lock"></i>Gastos Fijos
   <span id="acc-reservas-mes" style="font-size:11px;font-weight:400;color:#5a8a5a;margin-left:4px"></span>
   <span id="acc-reservas-total"
     style="font-size:11px;font-weight:600;color:#1a7a1a;margin-left:8px;
@@ -1130,6 +1130,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           <i class="ti ti-chevron-down acc-chev" id="acc-reservas-chev"></i>
         </div>
         <div class="acc-body" id="acc-reservas-body">
+          <div style="padding:10px 14px 9px;font-size:11px;color:#4a6a4a;line-height:1.55;background:#f7fbf7;border-bottom:.5px solid #d4e8d4">
+            💡 Recordá que todos estos gastos se pueden guardar en una reserva de tu billetera virtual (Mercado Pago, Naranja X u otra) para generar intereses hasta 1 día antes de la fecha de vencimiento.
+          </div>
           <div class="acc-inner" id="reservas-list"></div>
         </div>
       </div>
@@ -1878,6 +1881,7 @@ let presupuestoAlimentos = 80000;
 let alimentosUsados = 0;
 let ahorroMes = 0;
 let pagados = new Set();
+let tarjetasPagadas = new Set();
 let filtroActual = 'todos';
 let anioActual = 2025;
 let anioCarga = 2026;
@@ -2334,6 +2338,9 @@ function renderReservas(){
       <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid var(--borde)"><span style="font-size:11px;color:var(--texto2)">Abril 2025</span><span style="font-size:11px;font-weight:700;color:#2a7a2a">+ $28.500</span></div>
       <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid var(--borde)"><span style="font-size:11px;color:var(--texto2)">Marzo 2025</span><span style="font-size:11px;font-weight:700;color:#2a7a2a">+ $41.000</span></div>
       <div style="display:flex;justify-content:space-between;padding:7px 0"><span style="font-size:11px;color:var(--texto2)">Febrero 2025</span><span style="font-size:11px;font-weight:700;color:#9a2a2a">− $12.000</span></div>
+    </div>
+    <div style="margin:10px 0 4px;padding:11px 13px;background:linear-gradient(135deg,#e8f5e0,#f5fcf0);border-radius:12px;border:1.5px solid #a5d6a7;font-size:11px;color:#1a4a1a;line-height:1.6">
+      🌱 <strong>ESTE DINERO AHORRADO</strong> debe generar ganancias con intereses a través de una billetera virtual o invirtiendo en algún instrumento financiero. ¡Más adelante te daré recomendaciones de inversiones para que tu dinero rinda!
     </div>`;
 }
 
@@ -2463,6 +2470,9 @@ function renderGFyT(){
           <button class="gft-edit-btn" onclick="abrirEditarTarjeta(${i})">
             <i class="ti ti-pencil"></i>Editar
           </button>
+          <button onclick="toggleTarjetaPagada(${i})" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:8px;border:none;cursor:pointer;transition:all .2s;${tarjetasPagadas.has(i)?'background:#e8f5e8;color:#1a7a1a':'background:#ffe8e8;color:#9a1a1a'}">
+            ${tarjetasPagadas.has(i)?'✓ PAGADO':'● PENDIENTE'}
+          </button>
         </div>
       </div>
       <div class="gft-ver-det" onclick="togGftDet(${i})">
@@ -2484,6 +2494,12 @@ function togGftDet(i){
   const isOpen = body.classList.contains('open');
   body.classList.toggle('open', !isOpen);
   chev.classList.toggle('open', !isOpen);
+}
+
+function toggleTarjetaPagada(i){
+  if(tarjetasPagadas.has(i)) tarjetasPagadas.delete(i);
+  else tarjetasPagadas.add(i);
+  renderGFyT();
 }
 
 // ─── HELPER: Persistir gastos y tarjetas ────────────────────
