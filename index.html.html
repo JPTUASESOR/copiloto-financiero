@@ -772,11 +772,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     </div>
     <div class="auth-field">
       <label><i class="ti ti-lock" style="font-size:10px;vertical-align:-1px"></i> Contraseña</label>
-      <input type="password" id="auth-password" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+      <div style="position:relative">
+        <input type="password" id="auth-password" placeholder="Mínimo 6 caracteres" autocomplete="current-password" style="padding-right:36px;width:100%;box-sizing:border-box">
+        <button type="button" onclick="toggleAuthEye('auth-password','eye-pass')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;padding:0;line-height:1">
+          <i class="ti ti-eye" id="eye-pass" style="font-size:15px;vertical-align:-2px"></i>
+        </button>
+      </div>
     </div>
     <div class="auth-field" id="auth-confirm-wrap" style="display:none">
       <label><i class="ti ti-lock-check" style="font-size:10px;vertical-align:-1px"></i> Confirmar contraseña</label>
-      <input type="password" id="auth-confirm" placeholder="Repetí la contraseña" autocomplete="new-password">
+      <div style="position:relative">
+        <input type="password" id="auth-confirm" placeholder="Repetí la contraseña" autocomplete="new-password" style="padding-right:36px;width:100%;box-sizing:border-box">
+        <button type="button" onclick="toggleAuthEye('auth-confirm','eye-conf')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#888;padding:0;line-height:1">
+          <i class="ti ti-eye" id="eye-conf" style="font-size:15px;vertical-align:-2px"></i>
+        </button>
+      </div>
     </div>
 
     <button class="auth-btn" id="auth-submit-btn" onclick="submitAuth()">
@@ -1036,7 +1046,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
             <span>Agregar tarjeta de crédito</span>
           </button>
 
-          <button class="ob-next-btn" style="margin-top:16px" onclick="obFinish()">
+          <div id="ob-finish-warn" style="display:none;margin:10px 0 4px;padding:10px 13px;background:#fff8e1;border-radius:10px;border:1.5px solid #ffca28;font-size:12px;color:#7a5a00;line-height:1.5">
+            ⚠️ Tus gastos superan tu ingreso. Si querés continuar igual, presioná <strong>¡Listo, empezar!</strong> de nuevo.
+          </div>
+          <button class="ob-next-btn" style="margin-top:10px" onclick="obFinish()">
             <i class="ti ti-rocket"></i> ¡Listo, empezar!
           </button>
           <button class="ob-back-btn" onclick="obBack(4)">← Volver</button>
@@ -1390,6 +1403,13 @@ function limpiarAuthMensajes(){
   err.classList.remove('show'); err.textContent = '';
   ok.classList.remove('show');  ok.textContent  = '';
 }
+function toggleAuthEye(inputId, iconId){
+  const inp  = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  icon.className = show ? 'ti ti-eye-off' : 'ti ti-eye';
+}
 function mostrarAuthError(msg){
   const el = document.getElementById('auth-error');
   el.textContent = msg; el.classList.add('show');
@@ -1425,6 +1445,7 @@ async function submitAuth(){
 
   setAuthLoading(true);
   try {
+    // Timeout de 15s para evitar que el botón quede colgado indefinidamente
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('La conexión tardó demasiado. Revisá tu internet e intentá de nuevo.')), 15000)
     );
@@ -1437,18 +1458,20 @@ async function submitAuth(){
     if(result.error) throw result.error;
 
     if(_authMode === 'register' && !result.data.session){
+      // Supabase requiere confirmación de email
       mostrarAuthOk('¡Cuenta creada! Revisá tu correo para confirmar tu email y luego iniciá sesión.');
       switchAuthTab('login');
       setAuthLoading(false);
       return;
     }
 
-    // Login exitoso: seteamos _currentUserId ANTES de ocultar el overlay.
-    // Esto hace que onAuthStateChange vea _currentUserId ya seteado y no duplique la carga.
-    _currentUserId = result.data.session.user.id;
-    mostrarEmailUsuario(result.data.session.user.email);
-    ocultarAuthOverlay();          // ← siempre se ejecuta al loguearse
-    await cargarDatosDesdeSupabase();
+    // onAuthStateChange puede haber seteado _currentUserId antes que esta línea
+    if(!_currentUserId){
+      _currentUserId = result.data.session.user.id;
+      mostrarEmailUsuario(result.data.session.user.email);
+      await cargarDatosDesdeSupabase();
+      ocultarAuthOverlay();
+    }
 
   } catch(e){
     const msg = e.message || 'Error al autenticar.';
@@ -1460,8 +1483,8 @@ async function submitAuth(){
       mostrarAuthError('Confirmá tu email antes de ingresar.');
     else
       mostrarAuthError(msg);
-    setAuthLoading(false);         // ← solo en error; en éxito el overlay ya se ocultó
   }
+  setAuthLoading(false);
 }
 
 // ── Cerrar sesión ────────────────────────────────────
@@ -1842,8 +1865,14 @@ async function obFinish(){
   const totalFijo = gastosFijos.reduce((s,g)=>s+g.monto,0);
 
   if(ingresoTotal <= 0){ slideToStep(2); shakeinput('sueldoInput'); return; }
+  // Advertencia no bloqueante: muestra aviso pero siempre permite continuar
   if(totalFijo + alimentos >= ingresoTotal){
-    if(!confirm('⚠️ Tus gastos fijos superan tu ingreso. ¿Querés continuar igual?')) return;
+    const warn = document.getElementById('ob-finish-warn');
+    if(warn && !warn.dataset.shown){
+      warn.style.display = 'block';
+      warn.dataset.shown = '1';
+      return;  // primer clic: muestra aviso; segundo clic: continúa igual
+    }
   }
 
   const datos = {
@@ -2835,8 +2864,7 @@ renderObGastos(); // paso 3 pre-renderizado
 //    y cualquier cambio de estado de autenticación en tiempo real.
 sb.auth.onAuthStateChange(async (event, session) => {
   if(event === 'SIGNED_IN' && session){
-    // Si submitAuth ya tomó el control (_currentUserId ya seteado), no hacer nada.
-    // Este handler solo cubre el caso de sesión restaurada automáticamente por el browser.
+    // Evitar doble ejecución si getSession() ya inició la app
     if(_currentUserId) return;
     _currentUserId = session.user.id;
     mostrarEmailUsuario(session.user.email);
