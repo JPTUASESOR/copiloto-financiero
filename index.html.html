@@ -1425,7 +1425,6 @@ async function submitAuth(){
 
   setAuthLoading(true);
   try {
-    // Timeout de 15s para evitar que el botón quede colgado indefinidamente
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('La conexión tardó demasiado. Revisá tu internet e intentá de nuevo.')), 15000)
     );
@@ -1438,20 +1437,18 @@ async function submitAuth(){
     if(result.error) throw result.error;
 
     if(_authMode === 'register' && !result.data.session){
-      // Supabase requiere confirmación de email
       mostrarAuthOk('¡Cuenta creada! Revisá tu correo para confirmar tu email y luego iniciá sesión.');
       switchAuthTab('login');
       setAuthLoading(false);
       return;
     }
 
-    // onAuthStateChange puede haber seteado _currentUserId antes que esta línea
-    if(!_currentUserId){
-      _currentUserId = result.data.session.user.id;
-      mostrarEmailUsuario(result.data.session.user.email);
-      await cargarDatosDesdeSupabase();
-      ocultarAuthOverlay();
-    }
+    // Login exitoso: seteamos _currentUserId ANTES de ocultar el overlay.
+    // Esto hace que onAuthStateChange vea _currentUserId ya seteado y no duplique la carga.
+    _currentUserId = result.data.session.user.id;
+    mostrarEmailUsuario(result.data.session.user.email);
+    ocultarAuthOverlay();          // ← siempre se ejecuta al loguearse
+    await cargarDatosDesdeSupabase();
 
   } catch(e){
     const msg = e.message || 'Error al autenticar.';
@@ -1463,8 +1460,8 @@ async function submitAuth(){
       mostrarAuthError('Confirmá tu email antes de ingresar.');
     else
       mostrarAuthError(msg);
+    setAuthLoading(false);         // ← solo en error; en éxito el overlay ya se ocultó
   }
-  setAuthLoading(false);
 }
 
 // ── Cerrar sesión ────────────────────────────────────
@@ -2838,7 +2835,8 @@ renderObGastos(); // paso 3 pre-renderizado
 //    y cualquier cambio de estado de autenticación en tiempo real.
 sb.auth.onAuthStateChange(async (event, session) => {
   if(event === 'SIGNED_IN' && session){
-    // Evitar doble ejecución si getSession() ya inició la app
+    // Si submitAuth ya tomó el control (_currentUserId ya seteado), no hacer nada.
+    // Este handler solo cubre el caso de sesión restaurada automáticamente por el browser.
     if(_currentUserId) return;
     _currentUserId = session.user.id;
     mostrarEmailUsuario(session.user.email);
