@@ -1117,6 +1117,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <div class="phrase-author">— Tu Copiloto</div>
       </div>
 
+      <div style="margin:0 14px 10px;padding:10px 13px;font-size:11px;color:#4a6a4a;line-height:1.55;background:#f7fbf7;border-radius:10px;border:.5px solid #d4e8d4">
+        💡 Recordá que todos estos gastos se pueden guardar en una reserva de tu billetera virtual (Mercado Pago, Naranja X u otra) para generar intereses hasta 1 día antes de la fecha de vencimiento.
+      </div>
+
       <div class="acc" id="acc-reservas">
         <div class="acc-head" onclick="togAcc('acc-reservas')">
           <span class="acc-head-title">
@@ -1130,9 +1134,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           <i class="ti ti-chevron-down acc-chev" id="acc-reservas-chev"></i>
         </div>
         <div class="acc-body" id="acc-reservas-body">
-          <div style="padding:10px 14px 9px;font-size:11px;color:#4a6a4a;line-height:1.55;background:#f7fbf7;border-bottom:.5px solid #d4e8d4">
-            💡 Recordá que todos estos gastos se pueden guardar en una reserva de tu billetera virtual (Mercado Pago, Naranja X u otra) para generar intereses hasta 1 día antes de la fecha de vencimiento.
-          </div>
           <div class="acc-inner" id="reservas-list"></div>
         </div>
       </div>
@@ -1145,6 +1146,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <div class="acc-body" id="acc-ahorro-body">
           <div class="acc-inner" id="ahorro-detail"></div>
         </div>
+      </div>
+
+      <div style="margin:0 14px 14px;padding:11px 13px;background:linear-gradient(135deg,#e8f5e0,#f5fcf0);border-radius:12px;border:1.5px solid #a5d6a7;font-size:11px;color:#1a4a1a;line-height:1.6">
+        🌱 <strong>ESTE DINERO AHORRADO</strong> debe generar ganancias con intereses a través de una billetera virtual o invirtiendo en algún instrumento financiero. ¡Más adelante te daré recomendaciones de inversiones para que tu dinero rinda!
       </div>
     </div>
 
@@ -2121,7 +2126,7 @@ function renderVencChips(){
     return `<div class="venc-chip ${urg==='crit'?'crit':urg==='urg'?'urg':''}">
       <i class="ti ${v.icono}" style="color:${urg==='crit'?'#9a1a1a':urg==='urg'?'#9a6010':'#5a8a5a'}"></i>
       <div class="venc-nombre">${v.nombre}</div>
-      <div class="venc-fecha">Día ${v.dia} ${MESES_LABEL[mesNum]}</div>
+      <div class="venc-fecha">Día ${v.dia} ${v.mesLabel||MESES_LABEL[mesNum]}</div>
       <div class="venc-monto">${fmt(v.monto)}</div>
       <div class="venc-dias">${diasStr}</div>
     </div>`;
@@ -2134,14 +2139,30 @@ function renderVencChips(){
 
 // ─── VENCIMIENTOS COMPLETO ──────────────────────────
 function buildTodos(){
-  const tarjVenc = tarjetas.map((t,i)=>{
+  const tarjVenc = [];
+  tarjetas.forEach((t,i)=>{
     const mm = String(mesNum).padStart(2,'0');
     const dd = String(Math.min(t.vencimiento||20, 31)).padStart(2,'0');
     const fecha = `${anioCarga}-${mm}-${dd}`;
-    return {
+    // Vencimiento del ciclo actual (a pagar este mes)
+    tarjVenc.push({
       id: 1000+i, nombre:t.nombre+' (tarjeta)', cat:'tarjeta',
-      icono:'ti-credit-card', dia:t.vencimiento, monto:t.consumo, fecha
-    };
+      icono:'ti-credit-card', dia:t.vencimiento, monto:t.consumo,
+      fecha, mesLabel: MESES_LABEL[mesNum]
+    });
+    // Después del cierre, mostrar el próximo vencimiento (ciclo que cerró)
+    if(HOY > (t.cierre||15)){
+      const mesVencNum  = mesNum===12?1:mesNum+1;
+      const anioVencNum = mesNum===12?anioCarga+1:anioCarga;
+      const mmV = String(mesVencNum).padStart(2,'0');
+      const ddV = String(Math.min(t.vencimiento||20, 31)).padStart(2,'0');
+      const fechaV = `${anioVencNum}-${mmV}-${ddV}`;
+      tarjVenc.push({
+        id: 2000+i, nombre:t.nombre+' (tarjeta)', cat:'tarjeta',
+        icono:'ti-credit-card', dia:t.vencimiento, monto:t.consumo,
+        fecha: fechaV, mesLabel: MESES_LABEL[mesVencNum]
+      });
+    }
   });
   return [...gastosVenc, ...tarjVenc].sort((a,b)=>a.dia-b.dia);
 }
@@ -2338,9 +2359,6 @@ function renderReservas(){
       <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid var(--borde)"><span style="font-size:11px;color:var(--texto2)">Abril 2025</span><span style="font-size:11px;font-weight:700;color:#2a7a2a">+ $28.500</span></div>
       <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid var(--borde)"><span style="font-size:11px;color:var(--texto2)">Marzo 2025</span><span style="font-size:11px;font-weight:700;color:#2a7a2a">+ $41.000</span></div>
       <div style="display:flex;justify-content:space-between;padding:7px 0"><span style="font-size:11px;color:var(--texto2)">Febrero 2025</span><span style="font-size:11px;font-weight:700;color:#9a2a2a">− $12.000</span></div>
-    </div>
-    <div style="margin:10px 0 4px;padding:11px 13px;background:linear-gradient(135deg,#e8f5e0,#f5fcf0);border-radius:12px;border:1.5px solid #a5d6a7;font-size:11px;color:#1a4a1a;line-height:1.6">
-      🌱 <strong>ESTE DINERO AHORRADO</strong> debe generar ganancias con intereses a través de una billetera virtual o invirtiendo en algún instrumento financiero. ¡Más adelante te daré recomendaciones de inversiones para que tu dinero rinda!
     </div>`;
 }
 
@@ -2497,9 +2515,16 @@ function togGftDet(i){
 }
 
 function toggleTarjetaPagada(i){
-  if(tarjetasPagadas.has(i)) tarjetasPagadas.delete(i);
-  else tarjetasPagadas.add(i);
+  if(tarjetasPagadas.has(i)){
+    tarjetasPagadas.delete(i);
+    pagados.delete(1000+i);
+  } else {
+    tarjetasPagadas.add(i);
+    pagados.add(1000+i);
+  }
   renderGFyT();
+  renderVencChips();
+  renderVfResumen();
 }
 
 // ─── HELPER: Persistir gastos y tarjetas ────────────────────
