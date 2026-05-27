@@ -1864,15 +1864,6 @@ async function obFinish(){
   const totalFijo = gastosFijos.reduce((s,g)=>s+g.monto,0);
 
   if(ingresoTotal <= 0){ slideToStep(2); shakeinput('sueldoInput'); return; }
-  // Advertencia no bloqueante: muestra aviso pero siempre permite continuar
-  if(totalFijo + alimentos >= ingresoTotal){
-    const warn = document.getElementById('ob-finish-warn');
-    if(warn && !warn.dataset.shown){
-      warn.style.display = 'block';
-      warn.dataset.shown = '1';
-      return;  // primer clic: muestra aviso; segundo clic: continúa igual
-    }
-  }
 
   const datos = {
     nombre, mesNum, anioCarga: anioCargaSel, ingresoTotal,
