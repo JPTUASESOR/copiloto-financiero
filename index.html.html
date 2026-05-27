@@ -1465,13 +1465,12 @@ async function submitAuth(){
       return;
     }
 
-    // onAuthStateChange puede haber seteado _currentUserId antes que esta línea
-    if(!_currentUserId){
-      _currentUserId = result.data.session.user.id;
-      mostrarEmailUsuario(result.data.session.user.email);
-      await cargarDatosDesdeSupabase();
-      ocultarAuthOverlay();
-    }
+    // Siempre seteamos _currentUserId y ocultamos el overlay al login exitoso.
+    // Esto previene la condición de carrera con onAuthStateChange.
+    _currentUserId = result.data.session.user.id;
+    mostrarEmailUsuario(result.data.session.user.email);
+    ocultarAuthOverlay();
+    await cargarDatosDesdeSupabase();
 
   } catch(e){
     const msg = e.message || 'Error al autenticar.';
