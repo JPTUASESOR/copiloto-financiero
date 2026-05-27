@@ -1425,12 +1425,15 @@ async function submitAuth(){
 
   setAuthLoading(true);
   try {
-    let result;
-    if(_authMode === 'login'){
-      result = await sb.auth.signInWithPassword({ email, password });
-    } else {
-      result = await sb.auth.signUp({ email, password });
-    }
+    // Timeout de 15s para evitar que el botón quede colgado indefinidamente
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('La conexión tardó demasiado. Revisá tu internet e intentá de nuevo.')), 15000)
+    );
+    const authPromise = _authMode === 'login'
+      ? sb.auth.signInWithPassword({ email, password })
+      : sb.auth.signUp({ email, password });
+
+    const result = await Promise.race([authPromise, timeoutPromise]);
 
     if(result.error) throw result.error;
 
@@ -1442,10 +1445,13 @@ async function submitAuth(){
       return;
     }
 
-    _currentUserId = result.data.session.user.id;
-    mostrarEmailUsuario(result.data.session.user.email);
-    await cargarDatosDesdeSupabase();
-    ocultarAuthOverlay();
+    // onAuthStateChange puede haber seteado _currentUserId antes que esta línea
+    if(!_currentUserId){
+      _currentUserId = result.data.session.user.id;
+      mostrarEmailUsuario(result.data.session.user.email);
+      await cargarDatosDesdeSupabase();
+      ocultarAuthOverlay();
+    }
 
   } catch(e){
     const msg = e.message || 'Error al autenticar.';
