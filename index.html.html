@@ -856,12 +856,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
           <div class="ob-field">
             <label>N° de celular (WhatsApp) <span style="color:#c0392b">*</span></label>
-            <input class="ob-input" id="ob-whatsapp" type="tel" placeholder="Ej: 3874000000" autocomplete="off">
-          </div>
-
-          <div class="ob-field">
-            <label>Correo Electrónico <span style="color:#c0392b">*</span></label>
-            <input class="ob-input" id="ob-email" type="email" placeholder="ejemplo@correo.com" autocomplete="off">
+            <input class="ob-input" id="ob-whatsapp" type="number" min="1" step="1" inputmode="numeric" placeholder="Ej: 3874000000" autocomplete="off" onkeydown="return event.key!=='-'&&event.key!=='.'&&event.key!=='e'">
           </div>
 
           <div class="ob-field">
@@ -1645,9 +1640,10 @@ function obNext(from){
     const nombre = document.getElementById('ob-nombre').value.trim();
     if(!nombre){ document.getElementById('ob-nombre').focus(); shakeinput('ob-nombre'); return; }
     const wa = document.getElementById('ob-whatsapp').value.trim();
-    if(!wa){ document.getElementById('ob-whatsapp').focus(); shakeinput('ob-whatsapp'); return; }
-    const em = document.getElementById('ob-email').value.trim();
-    if(!em || !em.includes('@')){ document.getElementById('ob-email').focus(); shakeinput('ob-email'); return; }
+    const waNum = Number(wa);
+    if(!wa || isNaN(waNum) || waNum <= 0 || !Number.isInteger(waNum)){
+      document.getElementById('ob-whatsapp').focus(); shakeinput('ob-whatsapp'); return;
+    }
     // Resetear fechas auto-generadas al cambiar mes/año
     obGastos.forEach(g=>{ if(!g._fechaManual) g.fecha = null; });
     renderObGastos();
@@ -1852,7 +1848,6 @@ async function obFinish(){
   const alimentos     = parseFloat(document.getElementById('ob-alimentos').value)||0;
   const ahorroIngresado = parseFloat(document.getElementById('ahorroObInput').value)||0;
   const whatsapp      = document.getElementById('ob-whatsapp').value.trim();
-  const email         = document.getElementById('ob-email').value.trim();
   const fechaInicio   = new Date().toISOString().split('T')[0];
 
   const gastosFijos = obGastos.filter(g=>g.on).map(g=>{
@@ -1871,7 +1866,7 @@ async function obFinish(){
     ingreso: ingresoTotal,
     ahorroMes: ahorroIngresado,
     alimentos, gastosFijos, tarjetas: obTarjetas,
-    whatsapp, email, fechaInicio
+    whatsapp, fechaInicio
   };
 
   try { localStorage.setItem('copiloto_datos', JSON.stringify(datos)); } catch(e){}
@@ -2026,16 +2021,17 @@ function renderInicioHeader(nombre){
 
   // calcular balance libre
   const totalFijo = gastosVenc.reduce((s,g)=>s+g.monto,0);
-  const totalPagado = gastosVenc.filter(g=>pagados.has(g.id)).reduce((s,g)=>s+g.monto,0);
-  const libre = ingreso - totalFijo - presupuestoAlimentos;
-  const pendiente = totalFijo - totalPagado;
-  const disponible = Math.max(0, libre + totalPagado - alimentosUsados - gastosExtraDiarios);
-  const diasRestantes = 31 - HOY;
-  const diario = diasRestantes > 0 ? Math.round(disponible / diasRestantes) : 0;
+  const disponible = Math.max(0, ingreso - (presupuestoAlimentos + ahorroMes + totalFijo));
+
+  // Días restantes reales del mes de carga
+  const hoyReal = new Date();
+  const ultimoDiaMes = new Date(anioCarga, mesNum, 0).getDate();
+  const diasRestantes = Math.max(1, ultimoDiaMes - hoyReal.getDate() + 1);
+  const diario = Math.round(disponible / diasRestantes);
 
   document.getElementById('ud-bal').textContent = fmt(disponible);
-  document.getElementById('ud-balsub').textContent = `De ${fmt(Math.max(0,libre))} libres este mes`;
-  document.getElementById('ud-diario').textContent = fmt(diario)+'/día';
+  document.getElementById('ud-balsub').textContent = `De ${fmt(ingreso)} disponibles este mes`;
+  document.getElementById('ud-diario').textContent = `${fmt(diario)}/día · ${diasRestantes} días restantes`;
 
   // semáforo
   const pct = ingreso > 0 ? totalFijo/ingreso : 0;
