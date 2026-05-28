@@ -1877,7 +1877,7 @@ async function obFinish(){
   try { localStorage.setItem('copiloto_datos', JSON.stringify(datos)); } catch(e){}
   await sbGuardarDatos(datos);
 
-  iniciarApp(datos);
+  try { iniciarApp(datos); } catch(e){ console.warn('iniciarApp error:', e); }
   document.getElementById('ob-overlay').classList.add('hidden');
 }
 
@@ -1898,7 +1898,7 @@ async function resetOnboarding(){
 // ══════════════════════════════════════════════════════
 //  APP PRINCIPAL — Datos & Estado
 // ══════════════════════════════════════════════════════
-const HOY = 13; // día actual
+const HOY = new Date().toLocaleString('sv-SE',{timeZone:'America/Argentina/Buenos_Aires'}).slice(8,10)*1;
 
 let tarjetas = [];
 let gastosVenc = [];
