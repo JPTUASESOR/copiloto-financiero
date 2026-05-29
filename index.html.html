@@ -1245,10 +1245,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
             </div>
           </div>
         </div>
-        <button onclick="resetOnboarding()" style="width:100%;padding:13px;border-radius:13px;border:1.5px solid #c0392b;background:transparent;font-size:13px;font-weight:600;color:#c0392b;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
-          <i class="ti ti-refresh" style="font-size:15px"></i>Reiniciar configuración
+        <button onclick="iniciarCargaNuevoMes()" style="width:100%;padding:15px;border-radius:13px;border:none;background:var(--verde-oscuro);font-size:14px;font-weight:700;color:var(--verde-claro);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.4px;box-shadow:0 4px 18px rgba(26,46,26,.35)">
+          <i class="ti ti-calendar-plus" style="font-size:18px"></i>CARGAR NUEVO MES
         </button>
-        <div style="font-size:10px;color:var(--texto3);text-align:center;margin-top:8px">Esto borrará todos tus datos del mes actual.</div>
         <div style="height:10px"></div>
         <button onclick="cerrarSesion()" style="width:100%;padding:13px;border-radius:13px;border:1.5px solid #888;background:transparent;font-size:13px;font-weight:600;color:#555;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px">
           <i class="ti ti-logout" style="font-size:15px"></i>Cerrar sesión
@@ -1493,8 +1492,11 @@ async function cerrarSesion(){
 
 // ── Mostrar email en perfil ──────────────────────────
 function mostrarEmailUsuario(email){
+  const texto = email || 'No cargado';
   const el = document.getElementById('perf-user-email');
-  if(el) el.textContent = 'Sesión: ' + email;
+  if(el) el.textContent = 'Sesión: ' + texto;
+  const elPerfil = document.getElementById('perf-email');
+  if(elPerfil) elPerfil.textContent = texto;
 }
 
 // ══════════════════════════════════════════════════════
@@ -1856,9 +1858,33 @@ async function obFinish(){
     const fecha = g.fecha || `${anioCargaSel}-${mm}-${dd}`;
     return {...g, fecha, dia: parseInt(fecha.split('-')[2])||g.dia};
   });
-  const totalFijo = gastosFijos.reduce((s,g)=>s+g.monto,0);
 
   if(ingresoTotal <= 0){ slideToStep(2); shakeinput('sueldoInput'); return; }
+
+  // ── Archivar el mes activo anterior dentro de historial_meses ──
+  let datosAnteriores = {};
+  try { datosAnteriores = JSON.parse(localStorage.getItem('copiloto_datos') || '{}'); } catch(e){}
+  let historial_meses = Array.isArray(datosAnteriores.historial_meses)
+    ? [...datosAnteriores.historial_meses]
+    : [];
+  if(datosAnteriores.mesNum && datosAnteriores.anioCarga){
+    const yaExiste = historial_meses.some(
+      m => m.mesNum === datosAnteriores.mesNum && m.anio === datosAnteriores.anioCarga
+    );
+    if(!yaExiste){
+      const totalFijoAnterior = (datosAnteriores.gastosFijos || []).reduce((s,g) => s + g.monto, 0);
+      historial_meses.push({
+        mes:     MESES_LABEL[datosAnteriores.mesNum],
+        mesNum:  datosAnteriores.mesNum,
+        anio:    datosAnteriores.anioCarga,
+        ingreso: datosAnteriores.ingreso   || 0,
+        gastos:  totalFijoAnterior,
+        ahorro:  datosAnteriores.ahorroMes || 0,
+        deuda:   0,
+        nota:    'Mes archivado al cargar nuevo mes.'
+      });
+    }
+  }
 
   const datos = {
     nombre, mesNum, anioCarga: anioCargaSel, ingresoTotal,
@@ -1866,13 +1892,12 @@ async function obFinish(){
     ingreso: ingresoTotal,
     ahorroMes: ahorroIngresado,
     alimentos, gastosFijos, tarjetas: obTarjetas,
-    whatsapp, fechaInicio
+    whatsapp, fechaInicio,
+    historial_meses
   };
 
   try { localStorage.setItem('copiloto_datos', JSON.stringify(datos)); } catch(e){}
-  // Guardar en Supabase en segundo plano sin bloquear el arranque
   sbGuardarDatos(datos).catch(e => console.warn('bg-save:', e));
-
   iniciarApp(datos);
   document.getElementById('ob-overlay').classList.add('hidden');
 }
@@ -1889,6 +1914,38 @@ async function resetOnboarding(){
     } catch(e){}
   }
   location.reload();
+}
+
+function iniciarCargaNuevoMes(){
+  // Leer datos actuales para pre-llenar el formulario
+  let datosExistentes = {};
+  try { datosExistentes = JSON.parse(localStorage.getItem('copiloto_datos') || '{}'); } catch(e){}
+
+  // Pre-llenar nombre y WhatsApp con los datos que ya tenemos
+  const inputNombre = document.getElementById('ob-nombre');
+  const inputWa     = document.getElementById('ob-whatsapp');
+  if(inputNombre) inputNombre.value = datosExistentes.nombre   || '';
+  if(inputWa)     inputWa.value     = datosExistentes.whatsapp || '';
+
+  // Auto-avanzar mes y año al siguiente mes del activo
+  const sigMes  = (mesNum % 12) + 1;
+  const sigAnio = mesNum === 12 ? anioCarga + 1 : anioCarga;
+  document.getElementById('ob-mes-num').value = sigMes;
+  document.getElementById('ob-anio').value    = sigAnio;
+
+  // Limpiar campos de importes para que el usuario los cargue frescos
+  document.getElementById('sueldoInput').value        = '';
+  document.getElementById('otrosIngresosInput').value = '';
+  document.getElementById('ob-alimentos').value       = '';
+  document.getElementById('ahorroObInput').value      = '';
+  obTarjetas = [];
+  obGastos   = JSON.parse(JSON.stringify(GASTOS_DEFAULT));
+  renderObGastos();
+  renderObCards();
+
+  // Mostrar el overlay desde el Paso 1 (el usuario ve y puede editar todo)
+  document.getElementById('ob-overlay').classList.remove('hidden');
+  slideToStep(1);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1912,23 +1969,7 @@ let histAbierto = null;
 let gastosExtraDiarios = 0;
 let registrosDiarios = [];
 
-const historial = {
-  2025:[
-    {mes:'May',ingreso:450000,gastos:287100,ahorro:28000,deuda:0,nota:'Mes en curso — datos parciales.'},
-    {mes:'Abr',ingreso:450000,gastos:261400,ahorro:28500,deuda:0,nota:'Buen mes. Sobraron $28.500 que se sumaron al ahorro.'},
-    {mes:'Mar',ingreso:420000,gastos:258000,ahorro:41000,deuda:0,nota:'Aumento de sueldo. Se aprovechó para reforzar el ahorro.'},
-    {mes:'Feb',ingreso:420000,gastos:445000,ahorro:0,deuda:25000,nota:'Gasto imprevisto: arreglo del auto. Deuda descontada en marzo.'},
-    {mes:'Ene',ingreso:420000,gastos:271000,ahorro:19000,deuda:0,nota:'Mes tranquilo. Vacaciones de bajo costo.'},
-  ],
-  2024:[
-    {mes:'Dic',ingreso:380000,gastos:420000,ahorro:0,deuda:40000,nota:'Gastos de fin de año y regalos. Deuda arrastrada a enero.'},
-    {mes:'Nov',ingreso:380000,gastos:295000,ahorro:22000,deuda:0,nota:'Mes estable. Se pagó la cuota del seguro anual.'},
-    {mes:'Oct',ingreso:380000,gastos:280000,ahorro:31000,deuda:0,nota:'Mejor mes del año. Ingreso extra por horas adicionales.'},
-    {mes:'Sep',ingreso:350000,gastos:268000,ahorro:12000,deuda:0,nota:'Aumento de tarifas de servicios. Se ajustó la canasta.'},
-    {mes:'Ago',ingreso:350000,gastos:310000,ahorro:0,deuda:0,nota:'Sin sobrante. Los gastos llegaron justo al límite.'},
-    {mes:'Jul',ingreso:350000,gastos:285000,ahorro:18000,deuda:0,nota:'Mes de invierno con alto consumo de gas.'},
-  ],
-};
+let historialDatos = {}; // construido dinámicamente desde datos.historial_meses
 
 // ─── UTILIDADES ─────────────────────────────────────
 function fmt(n){ return '$'+Math.round(n).toLocaleString('es-AR'); }
@@ -1981,15 +2022,23 @@ function iniciarApp(datos){
     } else if(g.dia < HOY) pagados.add(g.id);
   });
 
-  // Actualizar historial mes actual
-  const mesLabel = MESES_LABEL[mesNum];
+  // Construir historialDatos dinámicamente desde datos.historial_meses + mes activo
+  const mesLabel    = MESES_LABEL[mesNum];
   const totalGastos = gastosVenc.reduce((s,g)=>s+g.monto,0);
-  if(!historial[anioCarga]) historial[anioCarga] = [];
-  historial[anioCarga][0] = {
-    mes: mesLabel, ingreso, gastos: totalGastos,
-    ahorro: ahorroMes,
+  historialDatos = {};
+  (datos.historial_meses || []).forEach(m => {
+    if(!historialDatos[m.anio]) historialDatos[m.anio] = [];
+    historialDatos[m.anio].push(m);
+  });
+  if(!historialDatos[anioCarga]) historialDatos[anioCarga] = [];
+  const entradaActiva = {
+    mes: mesLabel, mesNum, anio: anioCarga,
+    ingreso, gastos: totalGastos, ahorro: ahorroMes,
     deuda: 0, nota: 'Mes en curso — datos parciales.'
   };
+  const idxActivo = historialDatos[anioCarga].findIndex(m => m.mesNum === mesNum);
+  if(idxActivo >= 0) historialDatos[anioCarga][idxActivo] = entradaActiva;
+  else historialDatos[anioCarga].unshift(entradaActiva);
   anioActual = anioCarga;
 
   // Render UI
@@ -2268,7 +2317,7 @@ function renderVencFull(){
 // ─── HISTORIAL ──────────────────────────────────────
 function cambiarAnio(d){
   const n = anioActual + d;
-  if(!historial[n]) return;
+  const data = historialDatos[anioActual]||[];
   anioActual = n;
   document.getElementById('yr-display').textContent = n;
   histAbierto = null;
@@ -2290,7 +2339,7 @@ function togHist(idx){
 }
 
 function renderHistorial(){
-  const data = historial[anioActual]||[];
+  const data = historialDatos[anioActual]||[];
   const tI = data.reduce((s,m)=>s+m.ingreso,0);
   const tG = data.reduce((s,m)=>s+m.gastos,0);
   const tA = data.reduce((s,m)=>s+m.ahorro,0);
