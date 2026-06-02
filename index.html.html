@@ -1341,6 +1341,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <input type="number" id="c3d-monto-alimentos" placeholder="0" min="0">
     </div>
 
+    <!-- Ingreso Extraordinario -->
+    <div style="font-size:11px;font-weight:700;color:#3a5a3a;
+         margin:12px 0 8px;border-bottom:.5px solid var(--borde);
+         padding-bottom:6px">
+      <i class="ti ti-trending-up" style="font-size:13px;
+         vertical-align:-2px;margin-right:4px;color:#2a7a2a"></i>
+      Ingreso Extraordinario (opcional)
+    </div>
+    <div class="mf">
+      <label>Concepto del ingreso</label>
+      <input type="text" id="c3d-concepto-ingreso" 
+             placeholder="Ej: Freelance, venta, bono">
+    </div>
+    <div class="mf">
+      <label>Monto recibido ($)</label>
+      <input type="number" id="c3d-monto-ingreso" 
+             placeholder="0" min="0">
+    </div>
+
     <!-- Tarjeta -->
     <div style="font-size:11px;font-weight:700;color:#3a5a3a;margin:12px 0 8px;border-bottom:.5px solid var(--borde);padding-bottom:6px">
       <i class="ti ti-credit-card" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Consumo en Tarjeta (opcional)
@@ -1348,6 +1367,86 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="mf">
       <label>Tarjeta</label>
       <select id="c3d-tarjeta-sel"><option disabled selected>Seleccioná una tarjeta</option></select>
+    </div>
+
+    <!-- Botón para mostrar/ocultar formulario nueva tarjeta -->
+    <div style="text-align:right;margin-bottom:8px">
+      <button type="button" id="c3d-btn-nueva-tarjeta"
+        onclick="togC3dNuevaTarjeta()"
+        style="font-size:11px;color:#3a7a3a;background:#f0f8f0;
+               border:1px solid #b8d8b8;border-radius:8px;
+               padding:4px 11px;cursor:pointer;display:inline-flex;
+               align-items:center;gap:4px">
+        <i class="ti ti-plus" style="font-size:12px"></i>Nueva tarjeta
+      </button>
+    </div>
+
+    <!-- Mini-formulario nueva tarjeta (oculto por defecto) -->
+    <div id="c3d-nueva-tarjeta-form" style="display:none;
+         background:var(--verde-suave);border-radius:13px;
+         padding:13px;border:1.5px solid #a5d6a7;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#1a4a1a;
+           margin-bottom:10px;display:flex;align-items:center;gap:5px">
+        <i class="ti ti-credit-card" style="font-size:13px;color:#3a7a3a"></i>
+        Datos de la nueva tarjeta
+      </div>
+
+      <div class="mf">
+        <label>Nombre de la tarjeta</label>
+        <input type="text" id="c3d-nt-nombre"
+               placeholder="Ej: Visa Galicia"
+               style="background:var(--card)">
+      </div>
+
+      <div class="mg" style="margin-bottom:10px">
+        <div class="mf" style="margin:0">
+          <label>Red</label>
+          <select id="c3d-nt-red" style="background:var(--card)">
+            <option>Visa</option>
+            <option>Mastercard</option>
+            <option>American Express</option>
+            <option>Cabal</option>
+            <option>Naranja</option>
+          </select>
+        </div>
+        <div class="mf" style="margin:0">
+          <label>Límite ($)</label>
+          <input type="number" id="c3d-nt-limite"
+                 placeholder="0" min="0"
+                 style="background:var(--card)">
+        </div>
+      </div>
+
+      <div class="mg" style="margin-bottom:10px">
+        <div class="mf" style="margin:0">
+          <label>Día de cierre</label>
+          <input type="number" id="c3d-nt-cierre"
+                 placeholder="15" min="1" max="28"
+                 style="background:var(--card)">
+        </div>
+        <div class="mf" style="margin:0">
+          <label>Día de vencimiento</label>
+          <input type="number" id="c3d-nt-venc"
+                 placeholder="20" min="1" max="31"
+                 style="background:var(--card)">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:7px">
+        <button type="button" onclick="togC3dNuevaTarjeta()"
+          style="flex:1;padding:8px;border-radius:9px;
+                 border:1px solid var(--borde2);background:transparent;
+                 font-size:12px;color:var(--texto2);cursor:pointer">
+          Cancelar
+        </button>
+        <button type="button" onclick="confirmarC3dNuevaTarjeta()"
+          style="flex:2;padding:8px;border-radius:9px;border:none;
+                 background:var(--verde-oscuro);font-size:12px;
+                 font-weight:600;color:var(--verde-claro);cursor:pointer">
+          <i class="ti ti-check" style="font-size:12px;
+             vertical-align:-1px;margin-right:4px"></i>Agregar tarjeta
+        </button>
+      </div>
     </div>
     <div class="mf">
       <label>Concepto del consumo</label>
@@ -1979,6 +2078,7 @@ let filtroActual = 'todos';
 let anioActual = 2025;
 let anioCarga = 2026;
 let histAbierto = null;
+let ingresoExtraordinario = 0;
 let gastosExtraDiarios = 0;
 let registrosDiarios = [];
 
@@ -2076,6 +2176,17 @@ function iniciarApp(datos){
   if(!registrosDiarios.length){
     try { registrosDiarios = JSON.parse(localStorage.getItem('copiloto_registros') || '[]'); } catch(e){ registrosDiarios = []; }
   }
+
+  // Recalcular acumuladores desde registros guardados
+  gastosExtraDiarios = registrosDiarios.reduce(
+    (s,r) => s + (r.gastoExtra?.monto || 0), 0
+  );
+  alimentosUsados = registrosDiarios.reduce(
+    (s,r) => s + (r.gastoAlimentos || 0), 0
+  );
+  ingresoExtraordinario = registrosDiarios.reduce(
+    (s,r) => s + (r.ingresoExtraordinario?.monto || 0), 0
+  );
 }
 
 function renderInicioHeader(nombre){
@@ -2083,7 +2194,10 @@ function renderInicioHeader(nombre){
 
   // calcular balance libre
   const totalFijo = gastosVenc.reduce((s,g)=>s+g.monto,0);
-  const disponible = Math.max(0, ingreso - (presupuestoAlimentos + ahorroMes + totalFijo));
+  const disponible = Math.max(0,
+    ingreso + ingresoExtraordinario
+    - (presupuestoAlimentos + ahorroMes + totalFijo + gastosExtraDiarios)
+  );
 
   // Días restantes reales del mes de carga
   const hoyReal = new Date();
@@ -2817,6 +2931,50 @@ function verificarControlTresDias(datos){
   }
 }
 
+function togC3dNuevaTarjeta(){
+  const form = document.getElementById('c3d-nueva-tarjeta-form');
+  const btn  = document.getElementById('c3d-btn-nueva-tarjeta');
+  const visible = form.style.display !== 'none';
+  form.style.display = visible ? 'none' : 'block';
+  btn.innerHTML = visible
+    ? '<i class="ti ti-plus" style="font-size:12px"></i>Nueva tarjeta'
+    : '<i class="ti ti-x" style="font-size:12px"></i>Cancelar';
+  if(!visible){
+    ['c3d-nt-nombre','c3d-nt-limite','c3d-nt-cierre','c3d-nt-venc']
+      .forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('c3d-nt-red').value = 'Visa';
+  }
+}
+
+function confirmarC3dNuevaTarjeta(){
+  const nombre = document.getElementById('c3d-nt-nombre').value.trim();
+  if(!nombre){
+    document.getElementById('c3d-nt-nombre').focus();
+    return;
+  }
+  const nuevaTarjeta = {
+    nombre,
+    red:         document.getElementById('c3d-nt-red').value,
+    limite:      parseFloat(document.getElementById('c3d-nt-limite').value) || 0,
+    cierre:      parseInt(document.getElementById('c3d-nt-cierre').value)   || 15,
+    vencimiento: parseInt(document.getElementById('c3d-nt-venc').value)     || 20,
+    consumo:     0,
+    consumos:    []
+  };
+  tarjetas.push(nuevaTarjeta);
+  guardarDatosApp();
+  renderCards();
+  renderVencChips();
+  const sel = document.getElementById('c3d-tarjeta-sel');
+  const newIdx = tarjetas.length - 1;
+  const opt = document.createElement('option');
+  opt.value = newIdx;
+  opt.textContent = `${nuevaTarjeta.nombre} (${nuevaTarjeta.red})`;
+  sel.appendChild(opt);
+  sel.value = newIdx;
+  togC3dNuevaTarjeta();
+}
+
 function abrirControl3d(){
   const sel = document.getElementById('c3d-tarjeta-sel');
   if(sel){
@@ -2848,11 +3006,17 @@ async function guardarControl3d(){
   const montoTarj = parseFloat(document.getElementById('c3d-monto-tarj').value) || 0;
   const cuotas = parseInt(document.getElementById('c3d-cuotas').value) || 1;
 
+  const conceptoIngreso = document.getElementById('c3d-concepto-ingreso').value.trim();
+  const montoIngreso = parseFloat(document.getElementById('c3d-monto-ingreso').value) || 0;
+
   // 1. Gastos diarios
   if(montoGasto > 0) gastosExtraDiarios += montoGasto;
 
   // 2. Alimentos
   if(montoAlimentos > 0) alimentosUsados += montoAlimentos;
+
+  // 2b. Ingreso extraordinario
+  if(montoIngreso > 0) ingresoExtraordinario += montoIngreso;
 
   // 3. Tarjeta
   let tarjDatos = null;
@@ -2870,7 +3034,8 @@ async function guardarControl3d(){
     fecha: hoyStr,
     gastoExtra: { categoria, monto: montoGasto },
     gastoAlimentos: montoAlimentos,
-    gastoTarjeta: tarjDatos
+    gastoTarjeta: tarjDatos,
+    ingresoExtraordinario: montoIngreso > 0 ? { concepto: conceptoIngreso || 'Ingreso extra', monto: montoIngreso } : null
   };
   registrosDiarios.push(registro);
   try {
@@ -2885,9 +3050,98 @@ async function guardarControl3d(){
   renderRegistrosDiarios();
   renderCards();
   cerrarControl3d();
+  document.getElementById('c3d-concepto-ingreso').value = '';
+  document.getElementById('c3d-monto-ingreso').value = '';
 }
 
 // ─── REGISTROS DIARIOS ───────────────────────────────
+let _editRegIdx = null;
+
+function togErConceptoCustom(){
+  const sel = document.getElementById('er-cat-sel').value;
+  const wrap = document.getElementById('er-concepto-custom-wrap');
+  if(wrap) wrap.style.display = sel === 'GASTOS PERSONALIZADOS' ? 'block' : 'none';
+}
+
+function abrirEditarRegistro(idx){
+  const r = registrosDiarios[idx];
+  if(!r) return;
+  _editRegIdx = idx;
+
+  document.getElementById('er-fecha').value = r.fecha || '';
+
+  const cat = r.gastoExtra?.categoria || 'OCIO';
+  const categoriasList = ['OCIO','FARMACIA','DEPORTE','SALUD',
+    'SALIR A COMER','COMPRA DE INDUMENTARIA PERSONAL'];
+  const esCustom = !categoriasList.includes(cat);
+  const sel = document.getElementById('er-cat-sel');
+  sel.value = esCustom ? 'GASTOS PERSONALIZADOS' : cat;
+  document.getElementById('er-concepto-custom').value = esCustom ? cat : '';
+  document.getElementById('er-concepto-custom-wrap').style.display =
+    esCustom ? 'block' : 'none';
+  document.getElementById('er-monto-gasto').value = r.gastoExtra?.monto || 0;
+
+  document.getElementById('er-monto-alimentos').value = r.gastoAlimentos || 0;
+
+  document.getElementById('er-concepto-ingreso').value =
+    r.ingresoExtraordinario?.concepto || '';
+  document.getElementById('er-monto-ingreso').value =
+    r.ingresoExtraordinario?.monto || 0;
+
+  document.getElementById('modal-edit-registro').classList.add('show');
+}
+
+function cerrarEditarRegistro(){
+  document.getElementById('modal-edit-registro').classList.remove('show');
+  _editRegIdx = null;
+}
+
+async function guardarEditarRegistro(){
+  const r = registrosDiarios[_editRegIdx];
+  if(!r){ cerrarEditarRegistro(); return; }
+
+  const nuevaFecha = document.getElementById('er-fecha').value;
+  if(!nuevaFecha) return;
+
+  const catSel = document.getElementById('er-cat-sel').value;
+  const conceptoCustom = document.getElementById('er-concepto-custom').value.trim();
+  const categoria = catSel === 'GASTOS PERSONALIZADOS'
+    ? (conceptoCustom || 'Personalizado') : catSel;
+  const montoGasto = parseFloat(document.getElementById('er-monto-gasto').value) || 0;
+  const montoAlimentos = parseFloat(document.getElementById('er-monto-alimentos').value) || 0;
+  const conceptoIngreso = document.getElementById('er-concepto-ingreso').value.trim();
+  const montoIngreso = parseFloat(document.getElementById('er-monto-ingreso').value) || 0;
+
+  registrosDiarios[_editRegIdx] = {
+    ...r,
+    fecha: nuevaFecha,
+    gastoExtra: { categoria, monto: montoGasto },
+    gastoAlimentos: montoAlimentos,
+    ingresoExtraordinario: montoIngreso > 0
+      ? { concepto: conceptoIngreso || 'Ingreso extra', monto: montoIngreso }
+      : null
+  };
+
+  try {
+    localStorage.setItem('copiloto_registros', JSON.stringify(registrosDiarios));
+  } catch(e){}
+  await sbGuardarRegistros(registrosDiarios);
+
+  gastosExtraDiarios = registrosDiarios.reduce(
+    (s,reg) => s + (reg.gastoExtra?.monto || 0), 0
+  );
+  alimentosUsados = registrosDiarios.reduce(
+    (s,reg) => s + (reg.gastoAlimentos || 0), 0
+  );
+  ingresoExtraordinario = registrosDiarios.reduce(
+    (s,reg) => s + (reg.ingresoExtraordinario?.monto || 0), 0
+  );
+
+  renderInicioHeader(document.getElementById('ud-nombre').textContent);
+  renderRegistrosDiarios();
+  cerrarEditarRegistro();
+}
+
 function renderRegistrosDiarios(){
   const list = document.getElementById('acc-registros-inner');
   if(!list) return;
@@ -2895,7 +3149,9 @@ function renderRegistrosDiarios(){
     list.innerHTML = `<div style="padding:8px 0;color:var(--texto3);font-size:12px;text-align:center">Sin registros cargados aún.</div>`;
     return;
   }
-  const sorted = [...registrosDiarios].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const sorted = [...registrosDiarios]
+    .map((r, originalIdx) => ({ ...r, _origIdx: originalIdx }))
+    .sort((a,b)=>b.fecha.localeCompare(a.fecha));
   list.innerHTML = sorted.map((r,i)=>{
     const partes = r.fecha.split('-');
     const fechaLabel = `${partes[2]}/${partes[1]}/${partes[0]}`;
@@ -2906,6 +3162,17 @@ function renderRegistrosDiarios(){
       detalles.push(`<div class="res-row"><span class="res-name"><i class="ti ti-basket" style="font-size:11px;vertical-align:-1px;margin-right:4px"></i>Alimentos</span><span class="res-amount">${fmt(r.gastoAlimentos)}</span></div>`);
     if(r.gastoTarjeta)
       detalles.push(`<div class="res-row"><span class="res-name"><i class="ti ti-credit-card" style="font-size:11px;vertical-align:-1px;margin-right:4px"></i>${r.gastoTarjeta.concepto} (${r.gastoTarjeta.tarjeta})</span><span class="res-amount">${fmt(r.gastoTarjeta.valorCuota)}/mes</span></div>`);
+    if(r.ingresoExtraordinario && r.ingresoExtraordinario.monto > 0)
+      detalles.push(`<div class="res-row">
+        <span class="res-name">
+          <i class="ti ti-trending-up" style="font-size:11px;
+             vertical-align:-1px;margin-right:4px;color:#2a7a2a"></i>
+          Ingreso — ${r.ingresoExtraordinario.concepto}
+        </span>
+        <span class="res-amount" style="color:#1a7a1a">
+          +${fmt(r.ingresoExtraordinario.monto)}
+        </span>
+      </div>`);
     return `
       <div class="acc" style="margin:0 0 7px;border-radius:11px;overflow:hidden;background:var(--card);border:1px solid var(--borde)">
         <div class="acc-head" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.acc-chev').classList.toggle('open')">
@@ -2914,6 +3181,12 @@ function renderRegistrosDiarios(){
         </div>
         <div class="acc-body">
           <div class="acc-inner">${detalles.join('') || '<div style="font-size:12px;color:var(--texto3)">Sin detalle.</div>'}</div>
+          <div style="padding:8px 14px;border-top:.5px solid var(--borde);
+               background:#fafafa;display:flex;justify-content:flex-end">
+            <button class="gft-edit-btn" onclick="abrirEditarRegistro(${r._origIdx})">
+              <i class="ti ti-pencil"></i>Editar registro
+            </button>
+          </div>
         </div>
       </div>`;
   }).join('');
@@ -3036,6 +3309,94 @@ sb.auth.onAuthStateChange(async (event, session) => {
       <button onclick="cerrarEditarTarjeta()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--borde2);background:transparent;font-size:13px;color:var(--texto2);cursor:pointer">Cancelar</button>
       <button class="btn-add" style="flex:2" onclick="guardarEditarTarjeta()">
         <i class="ti ti-device-floppy" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>
+<!-- ═══ MODAL EDITAR REGISTRO ══════════════════════════════ -->
+<div class="modal-overlay" id="modal-edit-registro">
+  <div class="modal" style="max-height:88vh;overflow-y:auto;
+       scrollbar-width:none;width:330px">
+    <div class="modal-title">
+      <span>
+        <i class="ti ti-pencil" style="font-size:14px;vertical-align:-2px;
+           margin-right:6px;color:#5a8a5a"></i>
+        Editar Registro
+      </span>
+      <span class="modal-close" onclick="cerrarEditarRegistro()">
+        <i class="ti ti-x"></i>
+      </span>
+    </div>
+
+    <!-- Fecha -->
+    <div class="mf">
+      <label>Fecha</label>
+      <input type="date" id="er-fecha">
+    </div>
+
+    <!-- Gasto del período -->
+    <div style="font-size:11px;font-weight:700;color:#3a5a3a;margin-bottom:8px;
+         border-bottom:.5px solid var(--borde);padding-bottom:6px">
+      <i class="ti ti-shopping-cart" style="font-size:13px;vertical-align:-2px;
+         margin-right:4px"></i>Gasto del período
+    </div>
+    <div class="mf">
+      <label>Categoría</label>
+      <select id="er-cat-sel" onchange="togErConceptoCustom()">
+        <option>OCIO</option>
+        <option>FARMACIA</option>
+        <option>DEPORTE</option>
+        <option>SALUD</option>
+        <option>SALIR A COMER</option>
+        <option>COMPRA DE INDUMENTARIA PERSONAL</option>
+        <option>GASTOS PERSONALIZADOS</option>
+      </select>
+    </div>
+    <div class="mf" id="er-concepto-custom-wrap" style="display:none">
+      <label>Nombre del gasto personalizado</label>
+      <input type="text" id="er-concepto-custom" placeholder="Ej: Suscripción streaming">
+    </div>
+    <div class="mf">
+      <label>Monto del gasto ($)</label>
+      <input type="number" id="er-monto-gasto" placeholder="0" min="0">
+    </div>
+
+    <!-- Alimentos -->
+    <div style="font-size:11px;font-weight:700;color:#3a5a3a;margin:12px 0 8px;
+         border-bottom:.5px solid var(--borde);padding-bottom:6px">
+      <i class="ti ti-basket" style="font-size:13px;vertical-align:-2px;
+         margin-right:4px"></i>Reserva de Alimentos
+    </div>
+    <div class="mf">
+      <label>Gasto en comida del período ($)</label>
+      <input type="number" id="er-monto-alimentos" placeholder="0" min="0">
+    </div>
+
+    <!-- Ingreso Extraordinario -->
+    <div style="font-size:11px;font-weight:700;color:#3a5a3a;margin:12px 0 8px;
+         border-bottom:.5px solid var(--borde);padding-bottom:6px">
+      <i class="ti ti-trending-up" style="font-size:13px;vertical-align:-2px;
+         margin-right:4px;color:#2a7a2a"></i>Ingreso Extraordinario
+    </div>
+    <div class="mf">
+      <label>Concepto del ingreso</label>
+      <input type="text" id="er-concepto-ingreso" placeholder="Ej: Freelance, bono">
+    </div>
+    <div class="mf">
+      <label>Monto recibido ($)</label>
+      <input type="number" id="er-monto-ingreso" placeholder="0" min="0">
+    </div>
+
+    <!-- Botones -->
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button onclick="cerrarEditarRegistro()"
+        style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--borde2);
+               background:transparent;font-size:13px;color:var(--texto2);cursor:pointer">
+        Cancelar
+      </button>
+      <button class="btn-add" style="flex:2" onclick="guardarEditarRegistro()">
+        <i class="ti ti-device-floppy" style="font-size:14px;vertical-align:-2px;
+           margin-right:5px"></i>Guardar cambios
       </button>
     </div>
   </div>
