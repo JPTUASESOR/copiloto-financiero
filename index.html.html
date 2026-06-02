@@ -130,10 +130,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .bar-leg { display: flex; justify-content: space-between; margin-top: 5px; }
 .bar-leg span { font-size: 10px; color: var(--texto2); }
 
-/* PHRASE */
-.phrase { background: var(--verde-oscuro); border-radius: 14px; padding: 13px 15px; margin: 12px 14px 0; }
-.phrase-text { font-size: 12px; color: var(--verde-claro); line-height: 1.5; font-style: italic; }
-.phrase-author { font-size: 10px; color: #5a8a5a; margin-top: 5px; }
+/* PHRASE — sticky top + colores invertidos */
+.phrase {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  margin: 0;
+  padding: 11px 18px;
+  border-radius: 0;
+  border-bottom: 1.5px solid var(--verde-medio);
+  background: var(--verde-claro);
+}
+.phrase-text { font-size: 12px; color: var(--verde-oscuro); line-height: 1.5; font-style: italic; }
+.phrase-author { font-size: 10px; color: var(--verde-medio); margin-top: 5px; }
 
 /* ACCORDION */
 .acc { background: var(--card); border-radius: 14px; border: 1px solid var(--borde); overflow: hidden; margin: 10px 14px 0; }
@@ -1371,6 +1382,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let _currentUserId  = null;  // uuid del usuario logueado
 let _authMode       = 'login'; // 'login' | 'register'
+let _userEmail      = null;  // email de la sesión Supabase activa
 
 // ── Mostrar / ocultar pantalla de auth ───────────────
 function mostrarAuthOverlay(){
@@ -1492,6 +1504,7 @@ async function cerrarSesion(){
 
 // ── Mostrar email en perfil ──────────────────────────
 function mostrarEmailUsuario(email){
+  _userEmail = email || null;          // guardar para uso global como fallback
   const texto = email || 'No cargado';
   const el = document.getElementById('perf-user-email');
   if(el) el.textContent = 'Sesión: ' + texto;
@@ -2057,7 +2070,7 @@ function iniciarApp(datos){
   const pe = document.getElementById('perf-email');
   if(pn) pn.textContent = datos.nombre || '—';
   if(pw) pw.textContent = datos.whatsapp || 'No cargado';
-  if(pe) pe.textContent = datos.email || 'No cargado';
+  if(pe) pe.textContent = datos.email || _userEmail || 'No cargado';
 
   // Cargar registrosDiarios (ya poblado por cargarDatosDesdeSupabase; fallback a localStorage)
   if(!registrosDiarios.length){
@@ -2470,8 +2483,8 @@ function renderGFyT(){
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
             <div class="gft-fijo-monto">${fmt(g.monto)}</div>
             ${pagados.has(g.id)
-              ? `<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;background:#e8f5e8;color:#1a7a1a">✓ Pagado</span>`
-              : `<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;background:#ffe8e8;color:#9a1a1a">Pendiente</span>`
+              ? `<button onclick="toggleGastoPagado(${g.id})" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:8px;border:none;cursor:pointer;transition:all .2s;background:#e8f5e8;color:#1a7a1a">✓ PAGADO</button>`
+              : `<button onclick="toggleGastoPagado(${g.id})" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:8px;border:none;cursor:pointer;transition:all .2s;background:#ffe8e8;color:#9a1a1a">● PENDIENTE</button>`
             }
             <button class="gft-edit-btn" onclick="abrirEditarGasto('${g.id}')">
               <i class="ti ti-pencil"></i>Editar
@@ -2593,6 +2606,21 @@ function toggleTarjetaPagada(i){
   renderGFyT();
   renderVencChips();
   renderVfResumen();
+}
+
+function toggleGastoPagado(id){
+  // Normalizar: los ids de gastosVenc son números; desde el template llegan como número
+  const key = isNaN(Number(id)) ? id : Number(id);
+  if(pagados.has(key)){
+    pagados.delete(key);
+  } else {
+    pagados.add(key);
+  }
+  // Re-renderizar todas las vistas afectadas
+  renderGFyT();          // actualiza el botón PAGADO/PENDIENTE en pantalla Fijos y Tarjetas
+  renderVencChips();     // oculta/muestra el chip en Inicio (ya filtra por pagados)
+  renderVfResumen();     // actualiza totales pendiente/cancelado
+  renderInicioHeader(document.getElementById('ud-nombre').textContent);
 }
 
 // ─── HELPER: Persistir gastos y tarjetas ────────────────────
