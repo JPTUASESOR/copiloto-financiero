@@ -1097,14 +1097,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         </div>
       </div>
 
-      <!-- TARJETAS -->
-      <div class="sec">
-        <div class="sec-head">
-          <span class="sec-title"><i class="ti ti-credit-card" style="font-size:13px;vertical-align:-2px;margin-right:3px;color:#5a8a5a"></i>Tarjetas de crédito</span>
-          <span class="sec-link" onclick="abrirModal()"><i class="ti ti-plus" style="font-size:12px"></i> Agregar</span>
-        </div>
-      </div>
-      <div class="cards-scroll" id="cards-scroll"></div>
+
 
       <!-- VENCIMIENTOS PRÓXIMOS -->
       <div class="sec" style="margin-top:10px">
@@ -1186,8 +1179,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div id="gft-fijos-list"></div>
 
       <!-- Sección: Tarjetas -->
-      <div class="gft-sec-label" style="margin-top:10px">
-        <i class="ti ti-credit-card"></i>Tarjetas de Crédito
+      <div class="gft-sec-label" style="margin-top:10px;justify-content:space-between;padding-right:14px">
+        <span style="display:flex;align-items:center;gap:5px">
+          <i class="ti ti-credit-card"></i>Tarjetas de Crédito
+        </span>
+        <button onclick="abrirModal()" class="gft-edit-btn" style="font-size:10px;padding:4px 10px;gap:4px">
+          <i class="ti ti-plus" style="font-size:11px"></i>Nueva tarjeta
+        </button>
       </div>
       <div id="gft-tarjetas-list"></div>
 
@@ -2256,18 +2254,23 @@ function goTo(id){
 function abrirModal(){ document.getElementById('modal').classList.add('show'); }
 function cerrarModal(){ document.getElementById('modal').classList.remove('show'); }
 function agregarTarjeta(){
-  const nombre = document.getElementById('m-nombre').value;
+  const nombre = document.getElementById('m-nombre').value.trim();
   if(!nombre){ document.getElementById('m-nombre').focus(); return; }
   tarjetas.push({
-    nombre, red: document.getElementById('m-red').value,
-    cierre: parseInt(document.getElementById('m-cierre').value)||15,
-    vencimiento: parseInt(document.getElementById('m-venc').value)||20,
-    limite: parseFloat(document.getElementById('m-limite').value)||0,
-    consumo: parseFloat(document.getElementById('m-consumo').value)||0,
+    nombre,
+    red:         document.getElementById('m-red').value,
+    cierre:      parseInt(document.getElementById('m-cierre').value)  || 15,
+    vencimiento: parseInt(document.getElementById('m-venc').value)    || 20,
+    limite:      parseFloat(document.getElementById('m-limite').value)  || 0,
+    consumo:     parseFloat(document.getElementById('m-consumo').value) || 0,
+    consumos:    [], // array de cuotas, compatible con renderGFyT
   });
   cerrarModal();
   ['m-nombre','m-limite','m-consumo'].forEach(id => document.getElementById(id).value='');
-  renderCards(); renderVencChips();
+  guardarDatosApp();       // ← persistir en localStorage + Supabase
+  renderCards();           // ← guard ya agregado; no rompe si no existe el elemento
+  renderVencChips();       // ← actualiza chips de vencimientos en Inicio
+  renderGFyT();            // ← re-renderiza listado de tarjetas en GFyT inmediatamente
 }
 
 // ─── ACCORDION ──────────────────────────────────────
@@ -2282,6 +2285,7 @@ function togAcc(id){
 // ─── TARJETAS ───────────────────────────────────────
 function renderCards(){
   const el = document.getElementById('cards-scroll');
+  if(!el) return; // elemento eliminado de inicio; GFyT renderiza las tarjetas
   if(!tarjetas.length){
     el.innerHTML = `<div style="padding:4px 0;color:var(--texto3);font-size:12px">Sin tarjetas cargadas.</div>
       <div class="add-card" onclick="abrirModal()"><i class="ti ti-plus"></i><span>Agregar tarjeta</span></div>`;
