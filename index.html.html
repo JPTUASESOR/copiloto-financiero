@@ -33,8 +33,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
 }
 .status-bar span { color: var(--verde-claro); font-size: 12px; font-weight: 500; }
-.app-scroll { height: 720px; overflow-y: auto; scrollbar-width: none; padding-bottom: 70px; }
-.app-scroll::-webkit-scrollbar { display: none; }
+.app-scroll {
+  height: 720px; overflow-y: auto; padding-bottom: 70px;
+  scrollbar-width: thin;
+  scrollbar-color: #a5c8a5 transparent;
+}
+.app-scroll::-webkit-scrollbar { width: 4px; }
+.app-scroll::-webkit-scrollbar-track { background: transparent; }
+.app-scroll::-webkit-scrollbar-thumb {
+  background: #a5c8a5; border-radius: 4px;
+  opacity: 0;
+  transition: opacity .3s;
+}
+.app-scroll:hover::-webkit-scrollbar-thumb { opacity: 1; }
 
 /* HEADER */
 .header { background: var(--verde-oscuro); padding: 14px 18px 26px; border-radius: 0 0 26px 26px; }
@@ -55,16 +66,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   background: var(--verde-suave); border-radius: 18px;
   margin: -13px 14px 0; padding: 16px; border: 1px solid #c8e6c0;
 }
-.bal-label { font-size: 10px; color: #4a7a4a; text-transform: uppercase; letter-spacing: .5px; }
-.bal-amount { font-size: 30px; font-weight: 700; color: #1a4a1a; letter-spacing: -1px; margin: 2px 0; }
-.bal-sub { font-size: 11px; color: #5a8a5a; }
+.bal-label { font-size: 11px; color: #4a7a4a; text-transform: uppercase; letter-spacing: .5px; }
+.bal-amount { font-size: 32px; font-weight: 700; color: #1a4a1a; letter-spacing: -1px; margin: 2px 0; }
+.bal-sub { font-size: 12px; color: #5a8a5a; }
 .daily-pill {
   background: #fff9f0; border-radius: 11px; margin-top: 9px;
   padding: 9px 13px; border: 1px solid #f0d8b0;
   display: flex; justify-content: space-between; align-items: center;
 }
-.daily-pill span:first-child { font-size: 11px; color: #8a6030; }
-.daily-pill span:last-child { font-size: 16px; font-weight: 700; color: #5a3a10; }
+.daily-pill span:first-child { font-size: 12px; color: #8a6030; }
+.daily-pill span:last-child { font-size: 18px; font-weight: 700; color: #5a3a10; }
 
 /* SECTION */
 .sec { padding: 12px 14px 0; }
@@ -82,10 +93,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 }
 .credit-card.sel { border: 1.5px solid #3a7a3a; }
 .cc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.cc-name { font-size: 11px; font-weight: 600; color: var(--texto); }
-.cc-net { font-size: 10px; color: var(--texto2); background: #f5f5f5; padding: 2px 7px; border-radius: 8px; }
-.cc-amount { font-size: 18px; font-weight: 700; }
-.cc-limit { font-size: 10px; color: var(--texto2); margin-top: 1px; }
+.cc-name { font-size: 12px; font-weight: 600; color: var(--texto); }
+.cc-net { font-size: 11px; color: var(--texto2); background: #f5f5f5; padding: 2px 7px; border-radius: 8px; }
+.cc-amount { font-size: 20px; font-weight: 700; }
+.cc-limit { font-size: 11px; color: var(--texto2); margin-top: 1px; }
 .mini-bar { background: #f0ede8; border-radius: 3px; height: 4px; margin: 7px 0 5px; overflow: hidden; }
 .mini-bar-fill { height: 100%; border-radius: 3px; }
 .cc-foot { display: flex; justify-content: space-between; }
@@ -102,7 +113,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .add-card span { font-size: 10px; color: var(--texto3); text-align: center; }
 
 /* VENCIMIENTOS */
-.venc-scroll { display: flex; gap: 9px; padding: 0 14px 4px; overflow-x: auto; scrollbar-width: none; }
+/* VENCIMIENTOS SCROLL + FLECHAS */
+.venc-nav-wrap { position: relative; }
+.venc-nav-btn {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 26px; height: 44px; border-radius: 10px;
+  background: transparent; border: none;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; font-weight: 300; color: #2e5d2e;
+  opacity: 0.28; z-index: 5; transition: opacity .2s;
+  pointer-events: auto;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+.venc-nav-btn:hover { opacity: 0.65; }
+.venc-nav-btn:active { opacity: 0.85; }
+.venc-nav-btn.left  { left: 0px; }
+.venc-nav-btn.right { right: 0px; }
+.venc-nav-btn.hidden { opacity: 0; pointer-events: none; }
+.venc-scroll { display: flex; gap: 9px; padding: 0 28px 4px; overflow-x: auto; scrollbar-width: none; }
 .venc-scroll::-webkit-scrollbar { display: none; }
 .venc-chip {
   min-width: 125px; border-radius: 13px; padding: 11px;
@@ -112,10 +140,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .venc-chip.urg { border-color: #f0c870; background: #fffcf0; }
 .venc-chip.crit { border-color: #f0a0a0; background: #fff5f5; }
 .venc-chip i { font-size: 15px; margin-bottom: 5px; display: block; }
-.venc-nombre { font-size: 11px; font-weight: 600; color: var(--texto); }
-.venc-fecha { font-size: 10px; color: var(--texto2); margin-top: 1px; }
-.venc-monto { font-size: 13px; font-weight: 700; color: var(--texto); margin-top: 5px; }
-.venc-dias { font-size: 10px; margin-top: 2px; }
+.venc-nombre { font-size: 12px; font-weight: 600; color: var(--texto); }
+.venc-fecha { font-size: 11px; color: var(--texto2); margin-top: 1px; }
+.venc-monto { font-size: 14px; font-weight: 700; color: var(--texto); margin-top: 5px; }
+.venc-dias { font-size: 11px; margin-top: 2px; }
 .d-ok { color: #2a7a2a; }
 .d-warn { color: #9a6010; }
 .d-red { color: #9a1a1a; }
@@ -158,25 +186,54 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .acc-chev.open { transform: rotate(180deg); }
 .acc-body { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
 .acc-body.open { max-height: 400px; }
+/* ── PATCH: food-card siempre visible, sin colapso externo ── */
+.food-always { padding: 0 0 4px; }
+.food-card-static { 
+  background: var(--card); border-radius: 14px; padding: 10px 13px 8px;
+  border: 1px solid var(--borde); margin-top: 6px;
+}
+
+/* ── PATCH: Fix food inputs overflow ── */
+.food-reg-row {
+  display: flex; gap: 7px; align-items: center;
+  margin-bottom: 7px; width: 100%; overflow: hidden; box-sizing: border-box;
+}
+.food-reg-input {
+  flex: 1; min-width: 0; max-width: 100%;
+  padding: 7px 10px; border-radius: 9px;
+  border: 1px solid var(--borde2); font-size: 13px;
+  background: var(--card); color: var(--texto); box-sizing: border-box;
+}
+.food-reg-btn {
+  padding: 7px 11px; border-radius: 9px; border: none;
+  background: #2e5d2e; color: #fff; font-size: 12px;
+  cursor: pointer; flex-shrink: 0; white-space: nowrap;
+}
+.food-reg-desc {
+  display: block; width: 100%; max-width: 100%;
+  padding: 7px 10px; border-radius: 9px;
+  border: 1px solid var(--borde2); font-size: 12px;
+  background: var(--card); color: var(--texto); box-sizing: border-box;
+}
 .acc-inner { padding: 0 14px 13px; border-top: 1px solid var(--borde); }
 .res-row {
   display: flex; justify-content: space-between; align-items: center;
   padding: 8px 0; border-bottom: .5px solid var(--borde);
 }
 .res-row:last-child { border-bottom: none; }
-.res-name { font-size: 12px; color: var(--texto2); }
+.res-name { font-size: 13px; color: var(--texto2); }
 .res-right { display: flex; align-items: center; gap: 7px; }
-.res-amount { font-size: 12px; font-weight: 600; color: var(--texto); }
-.badge { font-size: 10px; padding: 2px 7px; border-radius: 9px; }
+.res-amount { font-size: 13px; font-weight: 600; color: var(--texto); }
+.badge { font-size: 11px; padding: 2px 7px; border-radius: 9px; }
 .b-ok { background: var(--verde-suave); color: #2a6a2a; }
 .b-warn { background: #fff9e0; color: #8a6010; }
 
 /* HISTORIAL */
 .hist-sum { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 0 14px 12px; }
 .hist-sum-card { background: var(--card); border-radius: 12px; padding: 11px 12px; border: 1px solid var(--borde); }
-.hs-label { font-size: 10px; color: var(--texto2); }
-.hs-val { font-size: 16px; font-weight: 700; color: var(--texto); margin-top: 2px; }
-.hs-sub { font-size: 10px; color: var(--texto3); margin-top: 1px; }
+.hs-label { font-size: 11px; color: var(--texto2); }
+.hs-val { font-size: 17px; font-weight: 700; color: var(--texto); margin-top: 2px; }
+.hs-sub { font-size: 11px; color: var(--texto3); margin-top: 1px; }
 
 .month-card { background: var(--card); border-radius: 14px; border: 1px solid var(--borde); overflow: hidden; margin: 0 14px 8px; cursor: pointer; }
 .mc-head { display: flex; align-items: center; gap: 11px; padding: 12px 14px; }
@@ -187,11 +244,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .mc-circle span:first-child { font-size: 10px; font-weight: 700; color: #81c784; text-transform: uppercase; }
 .mc-circle span:last-child { font-size: 10px; color: #4a7a4a; }
 .mc-info { flex: 1; }
-.mc-title { font-size: 13px; font-weight: 600; color: var(--texto); display: flex; align-items: center; gap: 6px; }
-.mc-sub { font-size: 10px; color: var(--texto2); margin-top: 2px; }
-.mc-result-pos { font-size: 13px; font-weight: 700; color: #1a7a1a; }
-.mc-result-neg { font-size: 13px; font-weight: 700; color: #9a1a1a; }
-.mc-result-label { font-size: 10px; color: var(--texto3); margin-top: 2px; text-align: right; }
+.mc-title { font-size: 14px; font-weight: 600; color: var(--texto); display: flex; align-items: center; gap: 6px; }
+.mc-sub { font-size: 11px; color: var(--texto2); margin-top: 2px; }
+.mc-result-pos { font-size: 14px; font-weight: 700; color: #1a7a1a; }
+.mc-result-neg { font-size: 14px; font-weight: 700; color: #9a1a1a; }
+.mc-result-label { font-size: 11px; color: var(--texto3); margin-top: 2px; text-align: right; }
 .mc-chev { font-size: 14px; color: var(--texto3); transition: transform .25s; flex-shrink: 0; }
 .mc-chev.open { transform: rotate(180deg); }
 .mc-detail { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
@@ -237,11 +294,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .ic-e { background: #f0e8ff; color: #5a1a9a; }
 .ic-o { background: #f5f5f5; color: var(--texto2); }
 .vf-info { flex: 1; min-width: 0; }
-.vf-name { font-size: 12px; font-weight: 600; color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.vf-cat { font-size: 10px; color: var(--texto2); margin-top: 1px; }
+.vf-name { font-size: 13px; font-weight: 600; color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vf-cat { font-size: 11px; color: var(--texto2); margin-top: 1px; }
 .vf-right { text-align: right; flex-shrink: 0; }
-.vf-monto { font-size: 13px; font-weight: 700; color: var(--texto); }
-.dbadge { font-size: 9px; padding: 2px 7px; border-radius: 8px; margin-top: 3px; display: inline-block; }
+.vf-monto { font-size: 14px; font-weight: 700; color: var(--texto); }
+.dbadge { font-size: 10px; padding: 2px 7px; border-radius: 8px; margin-top: 3px; display: inline-block; }
 .dbadge.ok { background: var(--verde-suave); color: #1a5a1a; }
 .dbadge.warn { background: #fff8e0; color: #7a5010; }
 .dbadge.red { background: #ffe8e8; color: #7a1a1a; }
@@ -370,9 +427,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .ob-body {
   flex: 1; width: 100%; min-width: 0;
   overflow-y: auto; overflow-x: hidden;
-  scrollbar-width: none; padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #a5c8a5 transparent;
+  padding: 0;
 }
-.ob-body::-webkit-scrollbar { display: none; }
+.ob-body::-webkit-scrollbar { width: 4px; }
+.ob-body::-webkit-scrollbar-track { background: transparent; }
+.ob-body::-webkit-scrollbar-thumb { background: #a5c8a5; border-radius: 4px; }
+.ob-body:hover::-webkit-scrollbar-thumb { background: #7aaa7a; }
 
 /* Wrapper de pasos con slide */
 .ob-steps-wrapper {
@@ -1090,7 +1152,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <div class="balance-card">
         <div class="bal-label" id="ud-bal-label">Disponible hoy</div>
         <div class="bal-amount" id="ud-bal">—</div>
-        <div class="bal-sub" id="ud-balsub">—</div>
+        <div class="bal-sub" style="display:flex;align-items:center;gap:6px">
+          <span id="ud-balsub">—</span>
+          <button id="btn-edit-ingreso" onclick="abrirEditarIngreso()"
+            style="background:none;border:none;cursor:pointer;padding:0;line-height:1;opacity:0.55;color:#3a7a3a;display:none"
+            title="Editar ingreso del mes">
+            <i class="ti ti-pencil" style="font-size:13px;vertical-align:-2px"></i>
+          </button>
+        </div>
         <div class="daily-pill">
           <span><i class="ti ti-coin" style="font-size:12px;vertical-align:-2px"></i> Gasto diario permitido</span>
           <span id="ud-diario">—</span>
@@ -1106,21 +1175,62 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           <span class="sec-link" onclick="goTo('venc')">Ver todos ↗</span>
         </div>
       </div>
-      <div class="venc-scroll" id="venc-chips"></div>
+      <div class="venc-nav-wrap">
+        <button class="venc-nav-btn left hidden" id="venc-arrow-left" onclick="scrollVencChips(-1)"><i class="ti ti-chevron-left"></i></button>
+        <div class="venc-scroll" id="venc-chips"></div>
+        <button class="venc-nav-btn right hidden" id="venc-arrow-right" onclick="scrollVencChips(1)"><i class="ti ti-chevron-right"></i></button>
+      </div>
 
       <!-- ALIMENTOS -->
       <div class="sec" style="margin-top:10px">
+
+        <!-- Cabecera: título + porcentaje — SIN onclick, no colapsa -->
         <div class="sec-head">
-          <span class="sec-title"><i class="ti ti-basket" style="font-size:13px;vertical-align:-2px;margin-right:3px;color:#5a8a5a"></i>Reserva de alimentos</span>
+          <span class="sec-title">
+            <i class="ti ti-basket" style="font-size:13px;vertical-align:-2px;margin-right:3px;color:#5a8a5a"></i>
+            Reserva de alimentos
+          </span>
           <span class="food-pct" id="ud-food-pct" style="font-size:12px;font-weight:700;color:#3a7a3a">0%</span>
         </div>
-        <div class="food-card">
+
+        <!-- Barra de progreso: SIEMPRE visible, fuera del colapsable -->
+        <div class="food-card-static">
           <div class="bar-track"><div class="bar-fill" id="ud-food-bar" style="width:0%"></div></div>
           <div class="bar-leg">
             <span id="ud-food-usado">Usado: $0</span>
             <span id="ud-food-total">Total: $0</span>
           </div>
         </div>
+
+        <!-- Acordeón: SOLO "Registrar consumo" colapsa -->
+        <div class="acc" id="acc-food-consumos" style="margin-top:6px">
+          <div class="acc-head" onclick="togAcc('acc-food-consumos')" style="padding:9px 13px">
+            <span class="acc-head-title" style="font-size:12px">
+              <i class="ti ti-pencil-plus" style="font-size:13px;margin-right:5px"></i>Registrar consumo
+            </span>
+            <i class="ti ti-chevron-down acc-chev" id="acc-food-consumos-chev"></i>
+          </div>
+          <div class="acc-body" id="acc-food-consumos-body">
+            <div class="acc-inner" style="padding:10px 13px 12px">
+              <!-- Fila 1: monto + botón -->
+              <div class="food-reg-row">
+                <input type="number" id="food-input-monto"
+                  placeholder="Monto (ej: 5000)" min="0"
+                  class="food-reg-input">
+                <button onclick="registrarConsumoAlimentos()" class="food-reg-btn">
+                  <i class="ti ti-minus"></i> Descontar
+                </button>
+              </div>
+              <!-- Fila 2: descripción -->
+              <input type="text" id="food-input-detalle"
+                placeholder="Descripción (opcional, ej: Supermercado)"
+                class="food-reg-desc">
+              <!-- Lista de consumos registrados -->
+              <div id="food-consumos-list" style="margin-top:10px"></div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="phrase">
@@ -1129,9 +1239,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <div class="phrase-author">— Tu Copiloto</div>
       </div>
 
-      <div style="margin:0 14px 10px;padding:10px 13px;font-size:11px;color:#4a6a4a;line-height:1.55;background:#f7fbf7;border-radius:10px;border:.5px solid #d4e8d4">
-        💡 Recordá que todos estos gastos se pueden guardar en una reserva de tu billetera virtual (Mercado Pago, Naranja X u otra) para generar intereses hasta 1 día antes de la fecha de vencimiento.
-      </div>
 
       <div class="acc" id="acc-reservas">
         <div class="acc-head" onclick="togAcc('acc-reservas')">
@@ -1148,6 +1255,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         <div class="acc-body" id="acc-reservas-body">
           <div class="acc-inner" id="reservas-list"></div>
         </div>
+      </div>
+
+      <div style="margin:0 14px 10px;padding:10px 13px;font-size:11px;color:#4a6a4a;line-height:1.55;background:#f7fbf7;border-radius:10px;border:.5px solid #d4e8d4">
+        💡 Recordá que todos estos gastos se pueden guardar en una reserva de tu billetera virtual (Mercado Pago, Naranja X u otra) para generar intereses hasta 1 día antes de la fecha de vencimiento.
       </div>
 
       <div class="acc" id="acc-ahorro" style="margin-bottom:6px">
@@ -1305,29 +1416,39 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       Ingresaste desde tu enlace de control. Completá los datos del período.
     </div>
 
-    <!-- Gastos diarios -->
+    <!-- Gasto del período — nuevo flujo disponible real -->
     <div style="font-size:11px;font-weight:700;color:#3a5a3a;margin-bottom:8px;border-bottom:.5px solid var(--borde);padding-bottom:6px">
-      <i class="ti ti-shopping-cart" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Gasto del período
+      <i class="ti ti-wallet" style="font-size:13px;vertical-align:-2px;margin-right:4px"></i>Disponible actual
     </div>
+
+    <!-- Referencia: disponible calculado por el sistema -->
+    <div id="c3d-ref-disponible" style="background:#f0f8f0;border-radius:10px;padding:10px 12px;margin-bottom:10px;border:1px solid #b8d8b8;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:11px;color:#3a5a3a">Tu Copiloto calculó</span>
+      <span id="c3d-ref-val" style="font-size:15px;font-weight:700;color:#1a4a1a">$0</span>
+    </div>
+
+    <!-- Input: disponible real actual -->
     <div class="mf">
-      <label>Categoría</label>
-      <select id="c3d-cat-sel" onchange="togGastoPersonalizado()">
-        <option>OCIO</option>
-        <option>FARMACIA</option>
-        <option>DEPORTE</option>
-        <option>SALUD</option>
-        <option>SALIR A COMER</option>
-        <option>COMPRA DE INDUMENTARIA PERSONAL</option>
-        <option>GASTOS PERSONALIZADOS</option>
-      </select>
+      <label>¿Cuánto dinero disponible tenés ahora? ($)</label>
+      <input type="number" id="c3d-disponible-real" placeholder="Ej: 1600000" min="0"
+        oninput="calcularDiferenciaC3d()">
     </div>
-    <div class="mf" id="c3d-concepto-custom-wrap" style="display:none">
-      <label>Nombre del gasto personalizado</label>
-      <input type="text" id="c3d-concepto-custom" placeholder="Ej: Suscripción streaming">
-    </div>
-    <div class="mf">
-      <label>Monto del gasto ($)</label>
-      <input type="number" id="c3d-monto-gasto" placeholder="0" min="0">
+
+    <!-- Pill diferencia (aparece al escribir) -->
+    <div id="c3d-diferencia-pill" style="display:none;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:12px;font-weight:600;text-align:center"></div>
+
+    <!-- Detalle de gastos dinámico -->
+    <div id="c3d-detalle-gastos-wrap" style="display:none">
+      <div style="font-size:11px;font-weight:700;color:#3a5a3a;margin:10px 0 6px;border-bottom:.5px solid var(--borde);padding-bottom:5px">
+        <i class="ti ti-list-details" style="font-size:12px;vertical-align:-2px;margin-right:4px"></i>¿En qué gastaste? (opcional)
+      </div>
+      <div id="c3d-detalle-list"></div>
+      <button type="button" onclick="agregarDetalleGastoC3d()"
+        style="width:100%;padding:8px;border-radius:9px;border:1.5px dashed var(--borde2);
+               background:transparent;font-size:12px;color:#3a7a3a;cursor:pointer;margin-bottom:8px;
+               display:flex;align-items:center;justify-content:center;gap:5px">
+        <i class="ti ti-plus" style="font-size:13px"></i>Agregar concepto
+      </button>
     </div>
 
     <!-- Alimentos -->
@@ -1364,7 +1485,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     </div>
     <div class="mf">
       <label>Tarjeta</label>
-      <select id="c3d-tarjeta-sel"><option disabled selected>Seleccioná una tarjeta</option></select>
+      <select id="c3d-tarjeta-sel" onchange="cambiarTarjetaC3d()"><option disabled selected>Seleccioná una tarjeta</option></select>
     </div>
 
     <!-- Botón para mostrar/ocultar formulario nueva tarjeta -->
@@ -1446,20 +1567,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
         </button>
       </div>
     </div>
-    <div class="mf">
-      <label>Concepto del consumo</label>
-      <input type="text" id="c3d-concepto-tarj" placeholder="Ej: Zapatillas Nike">
-    </div>
-    <div class="mg">
-      <div class="mf">
-        <label>Monto total ($)</label>
-        <input type="number" id="c3d-monto-tarj" placeholder="0" min="0">
-      </div>
-      <div class="mf">
-        <label>Cuotas</label>
-        <input type="number" id="c3d-cuotas" placeholder="1" min="1" value="1">
-      </div>
-    </div>
+    <!-- Lista dinámica de consumos en tarjeta -->
+    <div id="c3d-consumos-list"></div>
+    <button type="button" onclick="agregarConsumoTarjC3d()"
+      style="width:100%;padding:8px;border-radius:9px;border:1.5px dashed var(--borde2);
+             background:transparent;font-size:12px;color:#3a7a3a;cursor:pointer;margin-bottom:8px;
+             display:flex;align-items:center;justify-content:center;gap:5px">
+      <i class="ti ti-plus" style="font-size:13px"></i>Otro consumo
+    </button>
 
     <button class="btn-add" onclick="guardarControl3d()">
       <i class="ti ti-device-floppy" style="font-size:13px;vertical-align:-2px;margin-right:5px"></i>Guardar registro
@@ -1702,15 +1817,12 @@ const OB_TOTAL = 4;
 // Gastos fijos por defecto (pre-cargados en el paso 3)
 const GASTOS_DEFAULT = [
   { id:1,  nombre:'Alquiler / Expensas', cat:'vivienda', icono:'ti-home',               dia:1,  monto:85000, on:true },
-  { id:2,  nombre:'Expensas',            cat:'vivienda', icono:'ti-building',           dia:5,  monto:35000, on:false },
   { id:3,  nombre:'Luz',                 cat:'servicio', icono:'ti-bolt',               dia:10, monto:18000, on:true },
   { id:4,  nombre:'Gas',                 cat:'servicio', icono:'ti-flame',              dia:12, monto:12000, on:true },
   { id:5,  nombre:'Internet',            cat:'servicio', icono:'ti-wifi',               dia:15, monto:14000, on:true },
   { id:6,  nombre:'Teléfono celular',    cat:'servicio', icono:'ti-device-mobile',      dia:17, monto:9800,  on:false },
   { id:7,  nombre:'Obra social / Prepaga',cat:'salud',  icono:'ti-heart-rate-monitor', dia:18, monto:22000, on:true },
   { id:8,  nombre:'Agua',                cat:'servicio', icono:'ti-droplet',            dia:22, monto:6000,  on:false },
-  { id:9,  nombre:'Seguro del hogar',    cat:'otro',     icono:'ti-shield',             dia:25, monto:18000, on:false },
-  { id:10, nombre:'Colegio / Jardín',    cat:'educacion',icono:'ti-school',             dia:28, monto:45000, on:false },
 ];
 let obGastos = JSON.parse(JSON.stringify(GASTOS_DEFAULT));
 let obTarjetas = [];
@@ -1936,6 +2048,22 @@ function obDelCard(i){
   obTarjetas.splice(i,1);
   renderObCards();
 }
+// ─── EDITAR INGRESO INICIAL ──────────────────────────────────
+function abrirEditarIngreso(){
+  const actual = ingreso || 0;
+  const nuevo = prompt(`Ingresá el nuevo ingreso del mes ($):\n(Actual: ${fmt(actual)})`, actual);
+  if(nuevo === null) return; // canceló
+  const val = parseFloat(nuevo);
+  if(isNaN(val) || val <= 0){ alert('Ingresá un valor válido mayor a 0.'); return; }
+  ingreso = val;
+  // Actualizar en datos persistidos
+  const datos = JSON.parse(localStorage.getItem('copiloto_datos') || '{}');
+  datos.ingreso = val;
+  localStorage.setItem('copiloto_datos', JSON.stringify(datos));
+  sbGuardarDatos(datos).catch(()=>{});
+  renderInicioHeader(document.getElementById('ud-nombre').textContent);
+}
+
 // ── Helpers ingreso ─────────────────────────────────
 function actualizarTotalIngreso(){
   const sueldo = parseFloat(document.getElementById('sueldoInput').value)||0;
@@ -1995,6 +2123,25 @@ async function obFinish(){
       });
     }
   }
+
+  // ── Carry-over: saldos de tarjetas no abonados del mes anterior ──
+  const prevTarjetas = datosAnteriores.tarjetas || [];
+  obTarjetas.forEach(nt => {
+    const prev = prevTarjetas.find(pt => pt.nombre === nt.nombre);
+    if(prev && prev.consumo > 0 && !prev.pagadoCicloActual){
+      const prevMes   = datosAnteriores.mesNum   || mesNum;
+      const prevAnio  = datosAnteriores.anioCarga || anioCargaSel;
+      const pMes  = (prev.vencimiento <= (prev.cierre||15)) ? (prevMes===12?1:prevMes+1) : prevMes;
+      const pAnio = (prev.vencimiento <= (prev.cierre||15) && prevMes===12) ? prevAnio+1 : prevAnio;
+      const mmP = String(pMes).padStart(2,'0');
+      const ddP = String(Math.min(prev.vencimiento||20, 31)).padStart(2,'0');
+      nt.saldoPendienteMesAnterior = {
+        monto: prev.consumo,
+        fecha: `${pAnio}-${mmP}-${ddP}`,
+        mesLabel: MESES_LABEL[pMes]
+      };
+    }
+  });
 
   const datos = {
     nombre, mesNum, anioCarga: anioCargaSel, ingresoTotal,
@@ -2079,6 +2226,7 @@ let histAbierto = null;
 let ingresoExtraordinario = 0;
 let gastosExtraDiarios = 0;
 let registrosDiarios = [];
+let consumosAlimentos = []; // registros directos desde pantalla Inicio
 
 let historialDatos = {}; // construido dinámicamente desde datos.historial_meses
 
@@ -2117,6 +2265,7 @@ function weekGroup(dia){
 // ─── INICIAR APP con datos ───────────────────────────
 function iniciarApp(datos){
   tarjetas = datos.tarjetas || [];
+  consumosAlimentos = datos.consumosAlimentos || [];
   gastosVenc = (datos.gastosFijos || []).map((g)=>({...g, id: g.id}));
   mesNum = datos.mesNum || 1;
   anioCarga = datos.anioCarga || 2026;
@@ -2159,6 +2308,7 @@ function iniciarApp(datos){
   renderVencChips();
   renderReservas();
   renderRegistrosDiarios();
+  renderFoodConsumos();
   verificarControlTresDias(datos);
   iniciarReloj();
 
@@ -2181,7 +2331,7 @@ function iniciarApp(datos){
   );
   alimentosUsados = registrosDiarios.reduce(
     (s,r) => s + (r.gastoAlimentos || 0), 0
-  );
+  ) + consumosAlimentos.reduce((s,c) => s + (c.monto || 0), 0);
   ingresoExtraordinario = registrosDiarios.reduce(
     (s,r) => s + (r.ingresoExtraordinario?.monto || 0), 0
   );
@@ -2190,12 +2340,9 @@ function iniciarApp(datos){
 function renderInicioHeader(nombre){
   document.getElementById('ud-nombre').textContent = nombre;
 
-  // calcular balance libre
+  // calcular balance libre — usa disponibleReal del último control si existe
   const totalFijo = gastosVenc.reduce((s,g)=>s+g.monto,0);
-  const disponible = Math.max(0,
-    ingreso + ingresoExtraordinario
-    - (presupuestoAlimentos + ahorroMes + totalFijo + gastosExtraDiarios)
-  );
+  const disponible = Math.max(0, calcularDisponibleActual());
 
   // Días restantes reales del mes de carga
   const hoyReal = new Date();
@@ -2205,6 +2352,8 @@ function renderInicioHeader(nombre){
 
   document.getElementById('ud-bal').textContent = fmt(disponible);
   document.getElementById('ud-balsub').textContent = `De ${fmt(ingreso)} disponibles este mes`;
+  const btnEditIng = document.getElementById('btn-edit-ingreso');
+  if(btnEditIng) btnEditIng.style.display = ingreso > 0 ? 'inline-flex' : 'none';
   document.getElementById('ud-diario').textContent = `${fmt(diario)}/día · ${diasRestantes} días restantes`;
 
   // semáforo
@@ -2236,6 +2385,97 @@ function renderInicioHeader(nombre){
   if(balLabel) balLabel.textContent = `Disponible hoy — ${mesCapital} ${anioCarga}`;
   const resMes = document.getElementById('acc-reservas-mes');
   if(resMes) resMes.textContent = `— ${mesCapital} ${anioCarga}`;
+}
+
+// ─── CONSUMOS DE ALIMENTOS (desde pantalla Inicio) ────────────
+function registrarConsumoAlimentos(){
+  const monto   = parseFloat(document.getElementById('food-input-monto').value) || 0;
+  const detalle = document.getElementById('food-input-detalle').value.trim() || 'Alimentos';
+  if(monto <= 0){ document.getElementById('food-input-monto').focus(); return; }
+  const disponible = presupuestoAlimentos - alimentosUsados;
+  if(monto > disponible){
+    alert(`El monto supera el saldo disponible de alimentos (${fmt(disponible)}).`); return;
+  }
+  const id = Date.now();
+  const hoy = new Date().toISOString().slice(0,10);
+  consumosAlimentos.push({ id, fecha: hoy, monto, detalle });
+  alimentosUsados += monto;
+  document.getElementById('food-input-monto').value = '';
+  document.getElementById('food-input-detalle').value = '';
+  guardarDatosApp();
+  renderFoodConsumos();
+  renderInicioHeader(document.getElementById('ud-nombre').textContent);
+}
+
+function eliminarConsumoAlimentos(id){
+  const c = consumosAlimentos.find(x => x.id === id);
+  if(!c) return;
+  if(!confirm(`¿Eliminás el consumo "${c.detalle}" (${fmt(c.monto)})?`)) return;
+  alimentosUsados -= c.monto;
+  consumosAlimentos = consumosAlimentos.filter(x => x.id !== id);
+  guardarDatosApp();
+  renderFoodConsumos();
+  renderInicioHeader(document.getElementById('ud-nombre').textContent);
+}
+
+let _editFoodId = null;
+function abrirEditarConsumoAlimentos(id){
+  const c = consumosAlimentos.find(x => x.id === id);
+  if(!c) return;
+  _editFoodId = id;
+  document.getElementById('food-edit-monto').value   = c.monto;
+  document.getElementById('food-edit-detalle').value = c.detalle;
+  document.getElementById('modal-food-edit').classList.add('show');
+}
+function cerrarEditarConsumoAlimentos(){
+  document.getElementById('modal-food-edit').classList.remove('show');
+  _editFoodId = null;
+}
+function guardarEditarConsumoAlimentos(){
+  const c = consumosAlimentos.find(x => x.id === _editFoodId);
+  if(!c){ cerrarEditarConsumoAlimentos(); return; }
+  const nuevoMonto   = parseFloat(document.getElementById('food-edit-monto').value) || 0;
+  const nuevoDetalle = document.getElementById('food-edit-detalle').value.trim() || 'Alimentos';
+  if(nuevoMonto <= 0){ document.getElementById('food-edit-monto').focus(); return; }
+  const diferencia = nuevoMonto - c.monto;
+  const disponible = presupuestoAlimentos - alimentosUsados;
+  if(diferencia > disponible){
+    alert(`El nuevo monto supera el saldo disponible de alimentos (${fmt(disponible)}).`); return;
+  }
+  alimentosUsados += diferencia;
+  c.monto   = nuevoMonto;
+  c.detalle = nuevoDetalle;
+  guardarDatosApp();
+  renderFoodConsumos();
+  renderInicioHeader(document.getElementById('ud-nombre').textContent);
+  cerrarEditarConsumoAlimentos();
+}
+
+function renderFoodConsumos(){
+  const list = document.getElementById('food-consumos-list');
+  if(!list) return;
+  if(!consumosAlimentos.length){ list.innerHTML=''; return; }
+  const sorted = [...consumosAlimentos].sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  list.innerHTML = sorted.map(c=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;
+                padding:5px 8px;border-radius:8px;background:#f7fbf7;
+                border:.5px solid #d4e8d4;margin-bottom:4px;font-size:12px">
+      <div>
+        <span style="font-weight:600;color:#1a4a1a">${fmt(c.monto)}</span>
+        <span style="color:#5a8a5a;margin-left:5px">${c.detalle}</span>
+        <span style="color:var(--texto3);font-size:10px;margin-left:5px">${c.fecha.split('-').reverse().join('/')}</span>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button onclick="abrirEditarConsumoAlimentos(${c.id})"
+          style="border:none;background:none;cursor:pointer;color:#3a7a3a;font-size:13px;padding:2px 4px">
+          <i class="ti ti-pencil"></i>
+        </button>
+        <button onclick="eliminarConsumoAlimentos(${c.id})"
+          style="border:none;background:none;cursor:pointer;color:#9a2a2a;font-size:13px;padding:2px 4px">
+          <i class="ti ti-trash"></i>
+        </button>
+      </div>
+    </div>`).join('');
 }
 
 // ─── NAVEGACIÓN ─────────────────────────────────────
@@ -2294,8 +2534,13 @@ function renderCards(){
   let html = tarjetas.map((t,i)=>{
     const pct = t.limite>0?Math.min(100,Math.round(t.consumo/t.limite*100)):0;
     const col = cardColor(pct);
-    const dv = t.vencimiento - HOY;
-    const dvLabel = dv<=0?`<span class="d-red">Vence hoy/ya</span>`:dv<=3?`<span class="d-red">En ${dv}d</span>`:dv<=7?`<span class="d-warn">En ${dv}d</span>`:`<span class="d-ok">En ${dv}d</span>`;
+    // Calcular días al vencimiento real (respeta que puede ser mes siguiente)
+    const pagoMes  = (t.vencimiento <= (t.cierre||15)) ? (mesNum===12?1:mesNum+1) : mesNum;
+    const pagoAnio = (t.vencimiento <= (t.cierre||15) && mesNum===12) ? anioCarga+1 : anioCarga;
+    const fechaVenc = new Date(pagoAnio, pagoMes-1, t.vencimiento||20);
+    const hoyDate   = new Date(); hoyDate.setHours(0,0,0,0); fechaVenc.setHours(0,0,0,0);
+    const dv = Math.round((fechaVenc - hoyDate) / 86400000);
+    const dvLabel = dv<0?`<span class="d-red">Venció</span>`:dv===0?`<span class="d-red">Hoy</span>`:dv<=3?`<span class="d-red">En ${dv}d</span>`:dv<=7?`<span class="d-warn">En ${dv}d</span>`:`<span class="d-ok">En ${dv}d</span>`;
     return `<div class="credit-card ${i===0?'sel':''}" onclick="this.parentElement.querySelectorAll('.credit-card').forEach(c=>c.classList.remove('sel'));this.classList.add('sel')">
       <div class="cc-top"><span class="cc-name">${t.nombre}</span><span class="cc-net">${t.red}</span></div>
       <div class="cc-amount" style="color:${col}">${fmt(t.consumo)}</div>
@@ -2310,7 +2555,15 @@ function renderCards(){
 
 // ─── CHIPS VENCIMIENTOS (inicio) ────────────────────
 function renderVencChips(){
-  const todos = buildTodos().filter(v=>!pagados.has(v.id)).sort((a,b)=>a.dia-b.dia).slice(0,6);
+  const hoySort = new Date(); hoySort.setHours(0,0,0,0);
+  const todos = buildTodos().filter(v=>!pagados.has(v.id)).sort((a,b)=>{
+    const fa = a.fecha ? new Date(a.fecha+'T00:00:00') : new Date(anioCarga,mesNum-1,a.dia);
+    const fb = b.fecha ? new Date(b.fecha+'T00:00:00') : new Date(anioCarga,mesNum-1,b.dia);
+    const pastA = fa < hoySort, pastB = fb < hoySort;
+    if(pastA && !pastB) return -1;  // vencidos primero
+    if(!pastA && pastB) return 1;
+    return fa - fb;                 // luego por fecha ascendente
+  }).slice(0,8);
   let urgentes = 0;
   if(!todos.length){
     document.getElementById('venc-chips').innerHTML=`<div style="padding:8px 0;color:var(--texto3);font-size:12px">Sin vencimientos pendientes.</div>`;
@@ -2320,8 +2573,11 @@ function renderVencChips(){
   const html = todos.map(v=>{
     const urg = urgencia(v);
     if(urg==='crit'||urg==='urg') urgentes++;
-    const dias = v.dia - HOY;
-    const diasStr = urg==='past'?`<span style="color:#999">Venció</span>`:dias===0?`<span class="d-red">Hoy</span>`:urg==='crit'?`<span class="d-red">En ${dias}d</span>`:urg==='urg'?`<span class="d-warn">En ${dias}d</span>`:`<span class="d-ok">En ${dias}d</span>`;
+    // Calcular días usando la fecha real del vencimiento (ya incluye mes correcto)
+    const fechaVencV = v.fecha ? (() => { const d = new Date(v.fecha+'T00:00:00'); return d; })() : null;
+    const hoyV = new Date(); hoyV.setHours(0,0,0,0);
+    const dias = fechaVencV ? Math.round((fechaVencV - hoyV) / 86400000) : (v.dia - HOY);
+    const diasStr = urg==='past'?`<span style="color:#999">Venció</span>`:dias===0?`<span class="d-red">Hoy</span>`:dias<0?`<span class="d-red">Venció hace ${Math.abs(dias)}d</span>`:urg==='crit'?`<span class="d-red">En ${dias}d</span>`:urg==='urg'?`<span class="d-warn">En ${dias}d</span>`:`<span class="d-ok">En ${dias}d</span>`;
     return `<div class="venc-chip ${urg==='crit'?'crit':urg==='urg'?'urg':''}">
       <i class="ti ${v.icono}" style="color:${urg==='crit'?'#9a1a1a':urg==='urg'?'#9a6010':'#5a8a5a'}"></i>
       <div class="venc-nombre">${v.nombre}</div>
@@ -2334,36 +2590,75 @@ function renderVencChips(){
   const badge = document.getElementById('nav-badge');
   badge.textContent = urgentes;
   badge.style.display = urgentes>0?'flex':'none';
+  // Actualizar visibilidad de flechas
+  _actualizarFlechasVenc();
+}
+
+function scrollVencChips(dir){
+  const el = document.getElementById('venc-chips');
+  if(!el) return;
+  el.scrollBy({ left: dir * 140, behavior: 'smooth' });
+  setTimeout(_actualizarFlechasVenc, 320);
+}
+
+function _actualizarFlechasVenc(){
+  const el = document.getElementById('venc-chips');
+  const btnL = document.getElementById('venc-arrow-left');
+  const btnR = document.getElementById('venc-arrow-right');
+  if(!el || !btnL || !btnR) return;
+  const scrollable = el.scrollWidth > el.clientWidth + 4;
+  btnL.classList.toggle('hidden', !scrollable || el.scrollLeft < 4);
+  btnR.classList.toggle('hidden', !scrollable || el.scrollLeft >= el.scrollWidth - el.clientWidth - 4);
+  el.addEventListener('scroll', _actualizarFlechasVenc, { once: true });
 }
 
 // ─── VENCIMIENTOS COMPLETO ──────────────────────────
 function buildTodos(){
+  const hoyReal = new Date(); hoyReal.setHours(0,0,0,0);
   const tarjVenc = [];
   tarjetas.forEach((t,i)=>{
-    const mm = String(mesNum).padStart(2,'0');
-    const dd = String(Math.min(t.vencimiento||20, 31)).padStart(2,'0');
-    const fecha = `${anioCarga}-${mm}-${dd}`;
-    // Vencimiento del ciclo actual (a pagar este mes)
+    // Ciclo actual: consumos del mes → pago en el mes siguiente si vencimiento <= cierre
+    const pagoMes  = (t.vencimiento <= (t.cierre||15)) ? (mesNum===12?1:mesNum+1) : mesNum;
+    const pagoAnio = (t.vencimiento <= (t.cierre||15) && mesNum===12) ? anioCarga+1 : anioCarga;
+    const mm  = String(pagoMes).padStart(2,'0');
+    const dd  = String(Math.min(t.vencimiento||20,31)).padStart(2,'0');
+    const fecha = `${pagoAnio}-${mm}-${dd}`;
     tarjVenc.push({
-      id: 1000+i, nombre:t.nombre+' (tarjeta)', cat:'tarjeta',
+      id:1000+i, nombre:t.nombre+' (tarjeta)', cat:'tarjeta',
       icono:'ti-credit-card', dia:t.vencimiento, monto:t.consumo,
-      fecha, mesLabel: MESES_LABEL[mesNum]
+      fecha, mesLabel:MESES_LABEL[pagoMes]
     });
-    // Después del cierre, mostrar el próximo vencimiento (ciclo que cerró)
-    if(HOY > (t.cierre||15)){
-      const mesVencNum  = mesNum===12?1:mesNum+1;
-      const anioVencNum = mesNum===12?anioCarga+1:anioCarga;
-      const mmV = String(mesVencNum).padStart(2,'0');
-      const ddV = String(Math.min(t.vencimiento||20, 31)).padStart(2,'0');
-      const fechaV = `${anioVencNum}-${mmV}-${ddV}`;
+    // Saldo pendiente del ciclo anterior (no abonado al cargar nuevo mes)
+    if(t.saldoPendienteMesAnterior && t.saldoPendienteMesAnterior.monto > 0 && !pagados.has(3000+i)){
       tarjVenc.push({
-        id: 2000+i, nombre:t.nombre+' (tarjeta)', cat:'tarjeta',
+        id: 3000+i, nombre: t.nombre+' — saldo vencido', cat:'tarjeta',
+        icono:'ti-credit-card-off', dia: t.vencimiento,
+        monto: t.saldoPendienteMesAnterior.monto,
+        fecha: t.saldoPendienteMesAnterior.fecha,
+        mesLabel: t.saldoPendienteMesAnterior.mesLabel
+      });
+    }
+    // Si la fecha de cierre del ciclo actual ya pasó en tiempo real → agregar próximo ciclo
+    const fechaCierre = new Date(anioCarga, mesNum-1, t.cierre||15); fechaCierre.setHours(0,0,0,0);
+    if(hoyReal > fechaCierre){
+      const mesV  = pagoMes===12?1:pagoMes+1;
+      const anioV = pagoMes===12?pagoAnio+1:pagoAnio;
+      const mmV   = String(mesV).padStart(2,'0');
+      const ddV   = String(Math.min(t.vencimiento||20,31)).padStart(2,'0');
+      const fechaV = `${anioV}-${mmV}-${ddV}`;
+      tarjVenc.push({
+        id:2000+i, nombre:t.nombre+' (tarjeta)', cat:'tarjeta',
         icono:'ti-credit-card', dia:t.vencimiento, monto:t.consumo,
-        fecha: fechaV, mesLabel: MESES_LABEL[mesVencNum]
+        fecha:fechaV, mesLabel:MESES_LABEL[mesV]
       });
     }
   });
-  return [...gastosVenc, ...tarjVenc].sort((a,b)=>a.dia-b.dia);
+  // Ordenar por fecha real completa: vencidos primero, luego por proximidad
+  return [...gastosVenc, ...tarjVenc].sort((a,b)=>{
+    const fa = a.fecha ? new Date(a.fecha+'T00:00:00') : new Date(anioCarga,mesNum-1,a.dia);
+    const fb = b.fecha ? new Date(b.fecha+'T00:00:00') : new Date(anioCarga,mesNum-1,b.dia);
+    return fa - fb;
+  });
 }
 
 function renderVfResumen(){
@@ -2392,6 +2687,11 @@ function pagarVenc(id){
   if(pagados.has(id)) return;
   btn.classList.add('done');
   pagados.add(id);
+  // Si es saldo pendiente mes anterior (id 3000-3999), limpiar y persistir
+  if(id >= 3000 && id < 4000){
+    const idx = id - 3000;
+    if(tarjetas[idx]){ tarjetas[idx].saldoPendienteMesAnterior = null; guardarDatosApp(); }
+  }
   setTimeout(()=>{
     row.classList.add('hiding');
     setTimeout(()=>{ row.style.display='none'; renderVfResumen(); renderTotal(); renderVencChips(); }, 430);
@@ -2418,7 +2718,10 @@ function renderVencFull(){
     const esHoy = v.dia===HOY;
     const grp = weekGroup(v.dia);
     if(grp!==lastGroup){ html+=`<div class="week-sep-full">${grp}</div>`; lastGroup=grp; }
-    const dias = v.dia - HOY;
+    // Días usando fecha real para evitar error con vencimientos en mes siguiente
+    const fechaVencF = v.fecha ? new Date(v.fecha+'T00:00:00') : null;
+    const hoyF = new Date(); hoyF.setHours(0,0,0,0);
+    const dias = fechaVencF ? Math.round((fechaVencF - hoyF) / 86400000) : (v.dia - HOY);
     let badge = '';
     if(urg==='past') badge=`<span class="dbadge past">Venció día ${v.dia}</span>`;
     else if(esHoy)   badge=`<span class="dbadge red">Vence hoy</span>`;
@@ -2623,19 +2926,19 @@ function renderGFyT(){
   const mesVencNum  = mesNum === 12 ? 1 : mesNum + 1;
   const anioVencNum = mesNum === 12 ? anioCarga + 1 : anioCarga;
 
-  listTarj.innerHTML = tarjetas.map((t, i)=>{
+  // Armar el HTML del detalle de una tarjeta por índice
+  function _renderDetalleTarjeta(i){
+    const t = tarjetas[i];
+    if(!t) return '';
     const ddCierre = String(Math.min(t.cierre || 15, 28)).padStart(2,'0');
     const ddVenc   = String(Math.min(t.vencimiento || 20, 31)).padStart(2,'0');
     const mmActual = String(mesNum).padStart(2,'0');
     const mmVenc   = String(mesVencNum).padStart(2,'0');
-
     const fechaCierre = `${ddCierre}/${mmActual}/${anioCarga}`;
     const fechaVenc   = `${ddVenc}/${mmVenc}/${anioVencNum}`;
-
     const consumoTotal = t.consumo || 0;
     const consumos     = t.consumos || [];
 
-    /* Detalle de consumos */
     let detHtml = '';
     if(!consumos.length){
       detHtml = `<div style="font-size:12px;color:var(--texto3);padding:6px 0;text-align:center">
@@ -2647,12 +2950,9 @@ function renderGFyT(){
         const cuotaActual = c.cuotaActual || 1;
         const cuotasTotal = c.cuotasTotal || 1;
         const montoCuota  = cuotasTotal > 0 ? Math.round(c.montoTotal / cuotasTotal) : 0;
-
-        // Formato: "X cuota de Y (X/Y)" ó "Pago único" si cuotasTotal === 1
         const cuotaLabel = cuotasTotal === 1
           ? `<span class="gft-consumo-badge">Pago único</span>`
           : `<span class="gft-consumo-badge">${cuotaActual} cuota de ${cuotasTotal} (${cuotaActual}/${cuotasTotal})</span>`;
-
         return `<div class="gft-consumo-item">
           <div class="gft-consumo-nombre">${c.detalle || 'Consumo sin nombre'}</div>
           <div class="gft-consumo-row">
@@ -2687,22 +2987,52 @@ function renderGFyT(){
           <button class="gft-edit-btn" onclick="abrirEditarTarjeta(${i})">
             <i class="ti ti-pencil"></i>Editar
           </button>
+          <button onclick="eliminarTarjeta(${i})"
+            style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:8px;border:none;
+                   cursor:pointer;background:#ffe8e8;color:#9a1a1a;display:flex;align-items:center;gap:4px">
+            <i class="ti ti-trash" style="font-size:11px"></i>Eliminar
+          </button>
           <button onclick="toggleTarjetaPagada(${i})" style="font-size:9px;font-weight:700;padding:3px 9px;border-radius:8px;border:none;cursor:pointer;transition:all .2s;${tarjetasPagadas.has(i)?'background:#e8f5e8;color:#1a7a1a':'background:#ffe8e8;color:#9a1a1a'}">
             ${tarjetasPagadas.has(i)?'✓ PAGADO':'● PENDIENTE'}
           </button>
         </div>
       </div>
-      <div class="gft-ver-det" onclick="togGftDet(${i})">
+      <div class="gft-ver-det" onclick="togGftDet(0)">
         <span class="gft-ver-det-label">
           <i class="ti ti-list-details" style="font-size:12px"></i>Ver detalle de consumos
         </span>
-        <i class="ti ti-chevron-down gft-ver-det-chev" id="gft-chev-${i}"></i>
+        <i class="ti ti-chevron-down gft-ver-det-chev" id="gft-chev-0"></i>
       </div>
-      <div class="gft-det-body" id="gft-det-${i}">
+      <div class="gft-det-body" id="gft-det-0">
         <div class="gft-det-inner">${detHtml}</div>
       </div>
     </div>`;
-  }).join('');
+  }
+
+  // Dropdown + panel de detalle
+  const optsHtml = tarjetas.map((t,i) =>
+    `<option value="${i}">${t.nombre} (${t.red})</option>`
+  ).join('');
+
+  listTarj.innerHTML = `
+    <div style="padding:4px 14px 10px">
+      <select id="gft-tarj-sel"
+        onchange="document.getElementById('gft-tarj-detalle').innerHTML=window._renderDetalleTarjeta(parseInt(this.value));document.getElementById('gft-tarj-detalle').style.display='block'"
+        style="width:100%;padding:9px 12px;border-radius:11px;border:1px solid var(--borde2);
+               background:var(--card);color:var(--texto);font-size:13px;font-weight:500;
+               appearance:none;-webkit-appearance:none;
+               background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22><path fill=%22%233a5a3a%22 d=%22M7 10l5 5 5-5z%22/></svg>');
+               background-repeat:no-repeat;background-position:right 12px center;
+               cursor:pointer">
+        <option value="" disabled selected>Seleccioná una tarjeta ▾</option>
+        ${optsHtml}
+      </select>
+    </div>
+    <div id="gft-tarj-detalle" style="display:none;padding:0 14px 6px"></div>
+  `;
+
+  // Exponer helper al scope global para que el onchange inline lo encuentre
+  window._renderDetalleTarjeta = _renderDetalleTarjeta;
 }
 
 function togGftDet(i){
@@ -2717,10 +3047,32 @@ function toggleTarjetaPagada(i){
   if(tarjetasPagadas.has(i)){
     tarjetasPagadas.delete(i);
     pagados.delete(1000+i);
+    if(tarjetas[i]) tarjetas[i].pagadoCicloActual = false;
   } else {
     tarjetasPagadas.add(i);
     pagados.add(1000+i);
+    if(tarjetas[i]) tarjetas[i].pagadoCicloActual = true;
   }
+  guardarDatosApp(); // persiste pagadoCicloActual en Supabase
+  renderGFyT();
+  renderVencChips();
+  renderVfResumen();
+}
+
+function eliminarTarjeta(i){
+  const t = tarjetas[i];
+  if(!t) return;
+  if(!confirm(`¿Eliminás la tarjeta "${t.nombre} (${t.red})"?\nSe borrarán todos sus consumos. Esta acción no se puede deshacer.`)) return;
+  // Limpiar estado de pagados para esa tarjeta
+  tarjetasPagadas.delete(i);
+  pagados.delete(1000 + i);
+  // Eliminar del array principal
+  tarjetas.splice(i, 1);
+  // Reconstruir tarjetasPagadas con índices correctos (post-splice)
+  const nuevasPagadas = new Set();
+  tarjetasPagadas.forEach(idx => { if(idx < i) nuevasPagadas.add(idx); else if(idx > i) nuevasPagadas.add(idx-1); });
+  tarjetasPagadas = nuevasPagadas;
+  guardarDatosApp();
   renderGFyT();
   renderVencChips();
   renderVfResumen();
@@ -2745,8 +3097,9 @@ function toggleGastoPagado(id){
 async function guardarDatosApp(){
   try {
     const datos = JSON.parse(localStorage.getItem('copiloto_datos') || '{}');
-    datos.gastosFijos = gastosVenc;
-    datos.tarjetas    = tarjetas;
+    datos.gastosFijos        = gastosVenc;
+    datos.tarjetas           = tarjetas;
+    datos.consumosAlimentos  = consumosAlimentos;
     localStorage.setItem('copiloto_datos', JSON.stringify(datos));
     await sbGuardarDatos(datos);
   } catch(e){}
@@ -2790,6 +3143,22 @@ function guardarEditarGasto(){
   g.dia   = parseInt(nuevaFecha.split('-')[2]) || g.dia;
   g.monto = nuevoMonto;
 
+  guardarDatosApp();
+  renderGFyT();
+  renderVencFull();
+  renderVencChips();
+  renderReservas();
+  renderInicioHeader(document.getElementById('ud-nombre').textContent);
+  cerrarEditarGasto();
+}
+
+function eliminarGastoFijo(){
+  const id = _editGastoId;
+  if(!id) return;
+  const g = gastosVenc.find(x => String(x.id) === String(id));
+  if(!g) return;
+  if(!confirm(`¿Eliminás "${g.nombre}"?\nEsta acción no se puede deshacer.`)) return;
+  gastosVenc = gastosVenc.filter(x => String(x.id) !== String(id));
   guardarDatosApp();
   renderGFyT();
   renderVencFull();
@@ -2979,11 +3348,29 @@ function confirmarC3dNuevaTarjeta(){
   togC3dNuevaTarjeta();
 }
 
+// Mapa en memoria: {tarjIdx: [{concepto, monto, cuotas}]} — vive durante la sesión del modal
+let _c3dConsumosPorTarjeta = {};
+
 function abrirControl3d(){
+  _c3dConsumosPorTarjeta = {};   // limpiar mapa al abrir
   const sel = document.getElementById('c3d-tarjeta-sel');
   if(sel){
     sel.innerHTML = tarjetas.map((t,i)=>`<option value="${i}">${t.nombre} (${t.red})</option>`).join('') || '<option disabled>Sin tarjetas cargadas</option>';
   }
+  // Mostrar disponible de referencia calculado por el sistema
+  const refEl = document.getElementById('c3d-ref-val');
+  if(refEl) refEl.textContent = fmt(calcularDisponibleActual());
+
+  // Resetear campos del nuevo flujo
+  const dispInput = document.getElementById('c3d-disponible-real');
+  if(dispInput) dispInput.value = '';
+  document.getElementById('c3d-diferencia-pill').style.display = 'none';
+  document.getElementById('c3d-detalle-gastos-wrap').style.display = 'none';
+  document.getElementById('c3d-detalle-list').innerHTML = '';
+
+  // Renderizar lista de consumos vacía para la tarjeta seleccionada por defecto
+  _renderConsumosTarjC3d();
+
   document.getElementById('modal-control3d').classList.add('show');
 }
 
@@ -2991,56 +3378,227 @@ function cerrarControl3d(){
   document.getElementById('modal-control3d').classList.remove('show');
 }
 
-function togGastoPersonalizado(){
-  const sel = document.getElementById('c3d-cat-sel').value;
-  const inputWrap = document.getElementById('c3d-concepto-custom-wrap');
-  if(inputWrap) inputWrap.style.display = sel === 'GASTOS PERSONALIZADOS' ? 'block' : 'none';
+function calcularDisponibleActual(){
+  // Si hay un control previo con disponibleReal, usar ese como base
+  const ultimo = [...registrosDiarios].reverse().find(r => r.disponibleReal != null);
+  if(ultimo){
+    // Sumar ingresos extraordinarios registrados DESPUÉS de ese control
+    const fechaUltimo = new Date(ultimo.fecha + 'T00:00:00');
+    const extraPost = registrosDiarios
+      .filter(r => new Date(r.fecha + 'T00:00:00') > fechaUltimo)
+      .reduce((s,r) => s + (r.ingresoExtraordinario?.monto || 0), 0);
+    return ultimo.disponibleReal + extraPost;
+  }
+  // Fallback: cálculo original por fórmula
+  const totalFijo = gastosVenc.reduce((s,g)=>s+g.monto,0);
+  return Math.max(0, ingreso + ingresoExtraordinario - (presupuestoAlimentos + ahorroMes + totalFijo + gastosExtraDiarios));
+}
+
+function calcularDiferenciaC3d(){
+  const refVal = calcularDisponibleActual();
+  const nuevoVal = parseFloat(document.getElementById('c3d-disponible-real').value);
+  const pill = document.getElementById('c3d-diferencia-pill');
+  const detalleWrap = document.getElementById('c3d-detalle-gastos-wrap');
+
+  if(isNaN(nuevoVal) || document.getElementById('c3d-disponible-real').value === ''){
+    pill.style.display = 'none';
+    detalleWrap.style.display = 'none';
+    return;
+  }
+  const diff = refVal - nuevoVal;
+  if(diff > 0){
+    pill.style.background = '#ffe8e8';
+    pill.style.border = '1px solid #f5c6c6';
+    pill.style.color = '#7a1a1a';
+    pill.innerHTML = `<i class="ti ti-trending-down" style="font-size:13px;vertical-align:-2px;margin-right:5px"></i>Gastaste ${fmt(diff)} en estos 3 días`;
+  } else if(diff < 0){
+    pill.style.background = '#e8f5e8';
+    pill.style.border = '1px solid #b8d8b8';
+    pill.style.color = '#1a5a1a';
+    pill.innerHTML = `<i class="ti ti-trending-up" style="font-size:13px;vertical-align:-2px;margin-right:5px"></i>Ingresó ${fmt(Math.abs(diff))} adicional`;
+  } else {
+    pill.style.background = '#f0f8f0';
+    pill.style.border = '1px solid #c8e6c0';
+    pill.style.color = '#3a5a3a';
+    pill.innerHTML = `<i class="ti ti-equal" style="font-size:13px;vertical-align:-2px;margin-right:5px"></i>Sin variación en el período`;
+  }
+  pill.style.display = 'block';
+  detalleWrap.style.display = diff !== 0 ? 'block' : 'none';
+}
+
+function agregarDetalleGastoC3d(){
+  const list = document.getElementById('c3d-detalle-list');
+  const idx = list.children.length;
+  const div = document.createElement('div');
+  div.style.cssText = 'display:grid;grid-template-columns:1fr auto;gap:7px;margin-bottom:7px;align-items:center';
+  div.innerHTML = `
+    <input type="text" id="c3d-det-concepto-${idx}" placeholder="Ej: Supermercado"
+      style="font-size:12px;padding:7px 9px;border-radius:9px;border:.5px solid var(--borde2);background:#f9f9f9;color:var(--texto);width:100%">
+    <input type="number" id="c3d-det-monto-${idx}" placeholder="$0" min="0"
+      style="font-size:12px;padding:7px 9px;border-radius:9px;border:.5px solid var(--borde2);background:#f9f9f9;color:var(--texto);width:90px;text-align:right">
+  `;
+  list.appendChild(div);
+}
+
+// — Lee el DOM actual y persiste los consumos de la tarjeta activa en el mapa —
+function _guardarEstadoTarjActual(){
+  const sel = document.getElementById('c3d-tarjeta-sel');
+  const idx = parseInt(sel?.value);
+  if(isNaN(idx)) return;
+  const list = document.getElementById('c3d-consumos-list');
+  const filas = [];
+  for(let i = 0; i < list.children.length; i++){
+    filas.push({
+      concepto: document.getElementById(`c3d-tarj-concepto-${i}`)?.value || '',
+      monto:    document.getElementById(`c3d-tarj-monto-${i}`)?.value    || '',
+      cuotas:   document.getElementById(`c3d-tarj-cuotas-${i}`)?.value   || '1'
+    });
+  }
+  _c3dConsumosPorTarjeta[idx] = filas;
+}
+
+// — Renderiza en el DOM los consumos guardados para la tarjeta activa —
+function _renderConsumosTarjC3d(){
+  const sel = document.getElementById('c3d-tarjeta-sel');
+  const idx = parseInt(sel?.value);
+  const list = document.getElementById('c3d-consumos-list');
+  list.innerHTML = '';
+  const filas = (!isNaN(idx) && _c3dConsumosPorTarjeta[idx])
+    ? _c3dConsumosPorTarjeta[idx]
+    : [{ concepto:'', monto:'', cuotas:'1' }];
+  filas.forEach((f, i) => _crearFilaConsumo(list, i, f));
+}
+
+// — Cambia tarjeta: guarda estado anterior y renderiza el de la nueva —
+function cambiarTarjetaC3d(){
+  // Antes de cambiar, guardar estado actual
+  _guardarEstadoTarjActual();
+  // Ahora actualizar el value del select y renderizar
+  _renderConsumosTarjC3d();
+}
+
+// — Crea una fila de consumo en el DOM (con datos opcionales) —
+function _crearFilaConsumo(list, idx, datos = {}){
+  const div = document.createElement('div');
+  div.style.cssText = 'background:#f9fdf9;border-radius:11px;border:1px solid var(--borde);padding:10px 11px;margin-bottom:8px;position:relative';
+  div.innerHTML = `
+    ${idx > 0 ? `<button type="button" onclick="_guardarEstadoTarjActual();this.parentElement.remove();_reindexarConsumos()"
+      style="position:absolute;top:7px;right:8px;background:none;border:none;
+             cursor:pointer;font-size:14px;color:#aaa;line-height:1"
+      title="Quitar">×</button>` : ''}
+    <div class="mf" style="margin-bottom:7px">
+      <label style="font-size:11px">Concepto del consumo</label>
+      <input type="text" id="c3d-tarj-concepto-${idx}" placeholder="Ej: Zapatillas Nike"
+        value="${datos.concepto || ''}"
+        style="font-size:12px;padding:7px 9px;border-radius:9px;border:.5px solid var(--borde2);background:var(--card);color:var(--texto);width:100%">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+      <div class="mf" style="margin:0">
+        <label style="font-size:11px">Monto total ($)</label>
+        <input type="number" id="c3d-tarj-monto-${idx}" placeholder="0" min="0"
+          value="${datos.monto || ''}"
+          style="font-size:12px;padding:7px 9px;border-radius:9px;border:.5px solid var(--borde2);background:var(--card);color:var(--texto);width:100%">
+      </div>
+      <div class="mf" style="margin:0">
+        <label style="font-size:11px">Cuotas</label>
+        <input type="number" id="c3d-tarj-cuotas-${idx}" placeholder="1" min="1"
+          value="${datos.cuotas || '1'}"
+          style="font-size:12px;padding:7px 9px;border-radius:9px;border:.5px solid var(--borde2);background:var(--card);color:var(--texto);width:100%">
+      </div>
+    </div>
+  `;
+  list.appendChild(div);
+}
+
+// — Re-indexa los IDs tras quitar una fila —
+function _reindexarConsumos(){
+  const list = document.getElementById('c3d-consumos-list');
+  Array.from(list.children).forEach((div, i) => {
+    div.querySelector(`[id^="c3d-tarj-concepto-"]`)?.setAttribute('id', `c3d-tarj-concepto-${i}`);
+    div.querySelector(`[id^="c3d-tarj-monto-"]`)?.setAttribute('id', `c3d-tarj-monto-${i}`);
+    div.querySelector(`[id^="c3d-tarj-cuotas-"]`)?.setAttribute('id', `c3d-tarj-cuotas-${i}`);
+  });
+  _guardarEstadoTarjActual();
+}
+
+function agregarConsumoTarjC3d(){
+  _guardarEstadoTarjActual();
+  const list = document.getElementById('c3d-consumos-list');
+  _crearFilaConsumo(list, list.children.length, {});
+  _guardarEstadoTarjActual();
 }
 
 async function guardarControl3d(){
   const tz = 'America/Argentina/Buenos_Aires';
   const hoyStr = new Date().toLocaleDateString('sv-SE', {timeZone: tz});
-  const catSel = document.getElementById('c3d-cat-sel').value;
-  const conceptoCustom = document.getElementById('c3d-concepto-custom')?.value.trim() || '';
-  const categoria = catSel === 'GASTOS PERSONALIZADOS' ? (conceptoCustom || 'Personalizado') : catSel;
-  const montoGasto = parseFloat(document.getElementById('c3d-monto-gasto').value) || 0;
-  const montoAlimentos = parseFloat(document.getElementById('c3d-monto-alimentos').value) || 0;
-  const tarjIdx = parseInt(document.getElementById('c3d-tarjeta-sel').value);
-  const concepto = document.getElementById('c3d-concepto-tarj').value.trim();
-  const montoTarj = parseFloat(document.getElementById('c3d-monto-tarj').value) || 0;
-  const cuotas = parseInt(document.getElementById('c3d-cuotas').value) || 1;
 
-  const conceptoIngreso = document.getElementById('c3d-concepto-ingreso').value.trim();
-  const montoIngreso = parseFloat(document.getElementById('c3d-monto-ingreso').value) || 0;
+  // — Disponible real ingresado por el usuario —
+  const disponibleRealInput = parseFloat(document.getElementById('c3d-disponible-real').value);
+  const disponibleAnterior = calcularDisponibleActual();
+  const tieneDisponibleReal = !isNaN(disponibleRealInput) && document.getElementById('c3d-disponible-real').value !== '';
+  const disponibleReal = tieneDisponibleReal ? disponibleRealInput : null;
+  const diferencia = tieneDisponibleReal ? (disponibleAnterior - disponibleRealInput) : 0;
 
-  // 1. Gastos diarios
-  if(montoGasto > 0) gastosExtraDiarios += montoGasto;
-
-  // 2. Alimentos
-  if(montoAlimentos > 0) alimentosUsados += montoAlimentos;
-
-  // 2b. Ingreso extraordinario
-  if(montoIngreso > 0) ingresoExtraordinario += montoIngreso;
-
-  // 3. Tarjeta
-  let tarjDatos = null;
-  if(!isNaN(tarjIdx) && tarjetas[tarjIdx] && montoTarj > 0 && concepto){
-    const t = tarjetas[tarjIdx];
-    const valorCuota = Math.round(montoTarj / cuotas);
-    if(!t.consumos) t.consumos = [];
-    t.consumos.push({ detalle: concepto, montoTotal: montoTarj, cuotasTotal: cuotas, cuotaActual: 1 });
-    t.consumo = (t.consumo || 0) + valorCuota;
-    tarjDatos = { tarjeta: t.nombre, concepto, montoTotal: montoTarj, cuotas, valorCuota };
+  // — Detalle de gastos (array dinámico) —
+  const detalleList = document.getElementById('c3d-detalle-list');
+  const detalleGastos = [];
+  for(let i = 0; i < detalleList.children.length; i++){
+    const concepto = document.getElementById(`c3d-det-concepto-${i}`)?.value.trim();
+    const monto = parseFloat(document.getElementById(`c3d-det-monto-${i}`)?.value) || 0;
+    if(concepto || monto > 0) detalleGastos.push({ concepto: concepto || 'Sin descripción', monto });
   }
 
-  // 4. Registrar
+  // — Alimentos —
+  const montoAlimentos = parseFloat(document.getElementById('c3d-monto-alimentos').value) || 0;
+  if(montoAlimentos > 0) alimentosUsados += montoAlimentos;
+
+  // — Ingreso Extraordinario —
+  const conceptoIngreso = document.getElementById('c3d-concepto-ingreso').value.trim();
+  const montoIngreso = parseFloat(document.getElementById('c3d-monto-ingreso').value) || 0;
+  if(montoIngreso > 0) ingresoExtraordinario += montoIngreso;
+
+  // — Tarjeta — (multi-tarjeta, multi-consumo)
+  // Guardar estado de la tarjeta activa antes de procesar
+  _guardarEstadoTarjActual();
+  const tarjDatosArr = [];
+  for(const [idxStr, filas] of Object.entries(_c3dConsumosPorTarjeta)){
+    const tarjIdx = parseInt(idxStr);
+    if(isNaN(tarjIdx) || !tarjetas[tarjIdx]) continue;
+    const t = tarjetas[tarjIdx];
+    if(!t.consumos) t.consumos = [];
+    for(const fila of filas){
+      const concepto = fila.concepto?.trim();
+      const montoTarj = parseFloat(fila.monto) || 0;
+      const cuotas = parseInt(fila.cuotas) || 1;
+      if(concepto && montoTarj > 0){
+        const valorCuota = Math.round(montoTarj / cuotas);
+        t.consumos.push({ detalle: concepto, montoTotal: montoTarj, cuotasTotal: cuotas, cuotaActual: 1 });
+        t.consumo = (t.consumo || 0) + valorCuota;
+        tarjDatosArr.push({ tarjeta: t.nombre, concepto, montoTotal: montoTarj, cuotas, valorCuota });
+      }
+    }
+  }
+  const tarjDatos = tarjDatosArr.length ? tarjDatosArr : null;
+
+  // — Construir registro enriquecido —
   const registro = {
     fecha: hoyStr,
-    gastoExtra: { categoria, monto: montoGasto },
+    disponibleAnterior,
+    disponibleReal,
+    diferencia,
+    detalleGastos,
     gastoAlimentos: montoAlimentos,
     gastoTarjeta: tarjDatos,
-    ingresoExtraordinario: montoIngreso > 0 ? { concepto: conceptoIngreso || 'Ingreso extra', monto: montoIngreso } : null
+    ingresoExtraordinario: montoIngreso > 0
+      ? { concepto: conceptoIngreso || 'Ingreso extra', monto: montoIngreso }
+      : null,
+    // Retrocompatibilidad con gastoExtra legacy (suma de detalleGastos)
+    gastoExtra: {
+      categoria: detalleGastos.length ? detalleGastos[0].concepto : 'Control 3 días',
+      monto: detalleGastos.reduce((s,d)=>s+d.monto,0)
+    }
   };
+
   registrosDiarios.push(registro);
   try {
     localStorage.setItem('copiloto_registros', JSON.stringify(registrosDiarios));
@@ -3048,8 +3606,15 @@ async function guardarControl3d(){
   } catch(e){}
   await sbGuardarRegistros(registrosDiarios);
   await sbGuardarUltimoControl(hoyStr);
+  await guardarDatosApp(); // persiste tarjetas con consumos actualizados en copiloto_datos
 
-  // 5. Actualizar UI
+  // — Actualizar acumuladores legacy —
+  gastosExtraDiarios = registrosDiarios.reduce((s,r) => s + (r.gastoExtra?.monto || 0), 0);
+  alimentosUsados = registrosDiarios.reduce((s,r) => s + (r.gastoAlimentos || 0), 0)
+    + consumosAlimentos.reduce((s,c) => s + (c.monto || 0), 0);
+  ingresoExtraordinario = registrosDiarios.reduce((s,r) => s + (r.ingresoExtraordinario?.monto || 0), 0);
+
+  // — Actualizar UI —
   renderInicioHeader(document.getElementById('ud-nombre').textContent);
   renderRegistrosDiarios();
   renderCards();
@@ -3136,7 +3701,7 @@ async function guardarEditarRegistro(){
   );
   alimentosUsados = registrosDiarios.reduce(
     (s,reg) => s + (reg.gastoAlimentos || 0), 0
-  );
+  ) + consumosAlimentos.reduce((s,c) => s + (c.monto || 0), 0);
   ingresoExtraordinario = registrosDiarios.reduce(
     (s,reg) => s + (reg.ingresoExtraordinario?.monto || 0), 0
   );
@@ -3265,10 +3830,15 @@ sb.auth.onAuthStateChange(async (event, session) => {
       <input type="number" id="eg-monto" placeholder="0" min="0" step="100">
     </div>
 
-    <div style="display:flex;gap:8px;margin-top:4px">
-      <button onclick="cerrarEditarGasto()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--borde2);background:transparent;font-size:13px;color:var(--texto2);cursor:pointer">Cancelar</button>
-      <button class="btn-add" style="flex:2" onclick="guardarEditarGasto()">
-        <i class="ti ti-device-floppy" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>Guardar cambios
+    <div style="margin-top:4px">
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button onclick="cerrarEditarGasto()" style="flex:1;padding:10px;border-radius:11px;border:1px solid var(--borde2);background:transparent;font-size:13px;color:var(--texto2);cursor:pointer">Cancelar</button>
+        <button class="btn-add" style="flex:2" onclick="guardarEditarGasto()">
+          <i class="ti ti-device-floppy" style="font-size:14px;vertical-align:-2px;margin-right:5px"></i>Guardar cambios
+        </button>
+      </div>
+      <button onclick="eliminarGastoFijo()" style="width:100%;padding:9px;border-radius:11px;border:1px solid #f5c0c0;background:transparent;font-size:12px;font-weight:600;color:#c0392b;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+        <i class="ti ti-trash" style="font-size:13px"></i>Eliminar gasto fijo
       </button>
     </div>
   </div>
@@ -3401,6 +3971,32 @@ sb.auth.onAuthStateChange(async (event, session) => {
       <button class="btn-add" style="flex:2" onclick="guardarEditarRegistro()">
         <i class="ti ti-device-floppy" style="font-size:14px;vertical-align:-2px;
            margin-right:5px"></i>Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal editar consumo alimentos ── -->
+<div id="modal-food-edit" class="modal-overlay">
+  <div class="modal-box" style="max-width:320px">
+    <div class="modal-header">
+      <span class="modal-title"><i class="ti ti-basket" style="margin-right:6px"></i>Editar consumo</span>
+      <button class="modal-close" onclick="cerrarEditarConsumoAlimentos()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <label style="font-size:12px;font-weight:600;color:#3a5a3a;display:block;margin-bottom:4px">Monto</label>
+      <input type="number" id="food-edit-monto" placeholder="0" min="0"
+        style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--borde2);
+               font-size:14px;margin-bottom:10px;background:var(--card);color:var(--texto)">
+      <label style="font-size:12px;font-weight:600;color:#3a5a3a;display:block;margin-bottom:4px">Descripción</label>
+      <input type="text" id="food-edit-detalle" placeholder="Ej: Supermercado"
+        style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--borde2);
+               font-size:13px;margin-bottom:14px;background:var(--card);color:var(--texto)">
+    </div>
+    <div class="modal-footer" style="display:flex;gap:8px">
+      <button onclick="cerrarEditarConsumoAlimentos()" class="btn-cancel">Cancelar</button>
+      <button onclick="guardarEditarConsumoAlimentos()" class="btn-save">
+        <i class="ti ti-check"></i> Guardar
       </button>
     </div>
   </div>
