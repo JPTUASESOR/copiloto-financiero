@@ -3568,6 +3568,8 @@ function _eliminarFilaConsumoC3d(btn){
     _reindexarConsumos(); // re-indexa IDs y guarda estado
   }
 }
+
+function agregarConsumoTarjC3d(){
   _guardarEstadoTarjActual();
   const list = document.getElementById('c3d-consumos-list');
   _crearFilaConsumo(list, list.children.length, {});
