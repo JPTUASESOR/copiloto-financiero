@@ -902,7 +902,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   <!-- ══════════════════════════════════════
        ONBOARDING OVERLAY
   ══════════════════════════════════════ -->
-  <div class="ob-overlay" id="ob-overlay">
+  <div class="ob-overlay hidden" id="ob-overlay">
 
     <div class="ob-header">
       <div class="ob-logo">
@@ -1593,7 +1593,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 //     Dashboard → Settings → API
 const SUPABASE_URL      = 'https://ezedekglukvmfwlpbjox.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV6ZWRla2dsdWt2bWZ3bHBiam94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNjUwMjgsImV4cCI6MjA5NDk0MTAyOH0.SeZ9A6snjoiOELA0gpgnBrADnr2FLkpgNryN5R3avy4';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: false }
+});
 
 let _currentUserId  = null;  // uuid del usuario logueado
 let _authMode       = 'login'; // 'login' | 'register'
@@ -1803,8 +1805,10 @@ async function cargarDatosDesdeSupabase(){
 
       iniciarApp(datos);
       document.getElementById('ob-overlay').classList.add('hidden');
+    } else {
+      // Sin datos en Supabase → primera vez real del usuario: mostrar onboarding
+      document.getElementById('ob-overlay').classList.remove('hidden');
     }
-    // Si no hay datos en Supabase, el onboarding queda visible (primera vez del usuario)
   } catch(e){ console.warn('cargarDatosDesdeSupabase:', e.message); }
 }
 
