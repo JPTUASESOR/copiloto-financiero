@@ -2157,7 +2157,8 @@ async function obFinish(){
     ahorroMes: ahorroIngresado,
     alimentos, gastosFijos, tarjetas: obTarjetas,
     whatsapp, fechaInicio,
-    historial_meses
+    historial_meses,
+    email: _userEmail || '' // PATCH 5A: guardar email para Edge Function de control 3d
   };
 
   try { localStorage.setItem('copiloto_datos', JSON.stringify(datos)); } catch(e){}
@@ -2316,7 +2317,15 @@ function iniciarApp(datos){
   renderReservas();
   renderRegistrosDiarios();
   renderFoodConsumos();
-  verificarControlTresDias(datos);
+  // PATCH 5B: si el usuario llega desde el link del email (?control=1), abrir modal directo
+  const _urlParams = new URLSearchParams(window.location.search);
+  if(_urlParams.get('control') === '1'){
+    setTimeout(() => abrirControl3d(), 800);
+    // Limpiar el parámetro de la URL sin recargar la página
+    window.history.replaceState({}, '', window.location.pathname);
+  } else {
+    verificarControlTresDias(datos);
+  }
   iniciarReloj();
 
   // Perfil screen
